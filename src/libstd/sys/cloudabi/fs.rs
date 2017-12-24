@@ -57,11 +57,6 @@ impl OpenOptions {
 }
 
 impl File {
-    pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
-        let path = cstr(path)?;
-        File::open_c(&path, opts)
-    }
-
     pub fn file_attr(&self) -> io::Result<FileAttr> {
         let mut stat: cloudabi::filestat;
         let ret = unsafe { cloudabi::file_stat_fget(self.0.raw(), &mut stat) };
