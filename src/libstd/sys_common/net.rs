@@ -14,20 +14,26 @@ use fmt;
 use io::{self, Error, ErrorKind};
 use libc::{c_int, c_void};
 use mem;
-use net::{SocketAddr, Shutdown, Ipv4Addr, Ipv6Addr};
+use net::{SocketAddr, Shutdown};
+#[cfg(not(target_os = "cloudabi"))]
+use net::{Ipv4Addr, Ipv6Addr};
 use ptr;
-use sys::net::{cvt, cvt_r, cvt_gai, Socket, init, wrlen_t};
+use sys::net::{cvt, cvt_gai, Socket, init, wrlen_t};
+#[cfg(not(target_os = "cloudabi"))]
+use sys::net::cvt_r;
 use sys::net::netc as c;
-use sys_common::{AsInner, FromInner, IntoInner};
+use sys_common::{AsInner, FromInner};
+#[cfg(not(target_os = "cloudabi"))]
+use sys_common::IntoInner;
 use time::Duration;
 
-#[cfg(any(target_os = "dragonfly", target_os = "freebsd",
-          target_os = "ios", target_os = "macos",
+#[cfg(any(target_os = "dragonfly",
+          target_os = "freebsd", target_os = "ios", target_os = "macos",
           target_os = "openbsd", target_os = "netbsd",
           target_os = "solaris", target_os = "haiku", target_os = "l4re"))]
 use sys::net::netc::IPV6_JOIN_GROUP as IPV6_ADD_MEMBERSHIP;
-#[cfg(not(any(target_os = "dragonfly", target_os = "freebsd",
-              target_os = "ios", target_os = "macos",
+#[cfg(not(any(target_os = "dragonfly", target_os = "cloudabi",
+              target_os = "freebsd", target_os = "ios", target_os = "macos",
               target_os = "openbsd", target_os = "netbsd",
               target_os = "solaris", target_os = "haiku", target_os = "l4re")))]
 use sys::net::netc::IPV6_ADD_MEMBERSHIP;
@@ -36,8 +42,8 @@ use sys::net::netc::IPV6_ADD_MEMBERSHIP;
           target_os = "openbsd", target_os = "netbsd",
           target_os = "solaris", target_os = "haiku", target_os = "l4re"))]
 use sys::net::netc::IPV6_LEAVE_GROUP as IPV6_DROP_MEMBERSHIP;
-#[cfg(not(any(target_os = "dragonfly", target_os = "freebsd",
-              target_os = "ios", target_os = "macos",
+#[cfg(not(any(target_os = "dragonfly", target_os = "cloudabi",
+              target_os = "freebsd", target_os = "ios", target_os = "macos",
               target_os = "openbsd", target_os = "netbsd",
               target_os = "solaris", target_os = "haiku", target_os = "l4re")))]
 use sys::net::netc::IPV6_DROP_MEMBERSHIP;
@@ -57,6 +63,7 @@ const MSG_NOSIGNAL: c_int = 0x0;
 // sockaddr and misc bindings
 ////////////////////////////////////////////////////////////////////////////////
 
+#[cfg(not(target_os = "cloudabi"))]
 pub fn setsockopt<T>(sock: &Socket, opt: c_int, val: c_int,
                      payload: T) -> io::Result<()> {
     unsafe {
@@ -199,6 +206,7 @@ pub struct TcpStream {
 }
 
 impl TcpStream {
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn connect(addr: &SocketAddr) -> io::Result<TcpStream> {
         init();
 
@@ -221,18 +229,22 @@ impl TcpStream {
 
     pub fn into_socket(self) -> Socket { self.inner }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.inner.set_timeout(dur, c::SO_RCVTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.inner.set_timeout(dur, c::SO_SNDTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
         self.inner.timeout(c::SO_RCVTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
         self.inner.timeout(c::SO_SNDTIMEO)
     }
@@ -256,12 +268,14 @@ impl TcpStream {
         Ok(ret as usize)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn peer_addr(&self) -> io::Result<SocketAddr> {
         sockname(|buf, len| unsafe {
             c::getpeername(*self.inner.as_inner(), buf, len)
         })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
         sockname(|buf, len| unsafe {
             c::getsockname(*self.inner.as_inner(), buf, len)
@@ -284,10 +298,12 @@ impl TcpStream {
         self.inner.nodelay()
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL, ttl as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn ttl(&self) -> io::Result<u32> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL)?;
         Ok(raw as u32)
@@ -335,6 +351,7 @@ pub struct TcpListener {
 }
 
 impl TcpListener {
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn bind(addr: &SocketAddr) -> io::Result<TcpListener> {
         init();
 
@@ -361,6 +378,7 @@ impl TcpListener {
 
     pub fn into_socket(self) -> Socket { self.inner }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
         sockname(|buf, len| unsafe {
             c::getsockname(*self.inner.as_inner(), buf, len)
@@ -380,19 +398,23 @@ impl TcpListener {
         self.inner.duplicate().map(|s| TcpListener { inner: s })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL, ttl as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn ttl(&self) -> io::Result<u32> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL)?;
         Ok(raw as u32)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_only_v6(&self, only_v6: bool) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY, only_v6 as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn only_v6(&self) -> io::Result<bool> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY)?;
         Ok(raw != 0)
@@ -436,6 +458,7 @@ pub struct UdpSocket {
 }
 
 impl UdpSocket {
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn bind(addr: &SocketAddr) -> io::Result<UdpSocket> {
         init();
 
@@ -449,6 +472,7 @@ impl UdpSocket {
 
     pub fn into_socket(self) -> Socket { self.inner }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
         sockname(|buf, len| unsafe {
             c::getsockname(*self.inner.as_inner(), buf, len)
@@ -463,6 +487,7 @@ impl UdpSocket {
         self.inner.peek_from(buf)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn send_to(&self, buf: &[u8], dst: &SocketAddr) -> io::Result<usize> {
         let len = cmp::min(buf.len(), <wrlen_t>::max_value() as usize) as wrlen_t;
         let (dstp, dstlen) = dst.into_inner();
@@ -478,58 +503,71 @@ impl UdpSocket {
         self.inner.duplicate().map(|s| UdpSocket { inner: s })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.inner.set_timeout(dur, c::SO_RCVTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.inner.set_timeout(dur, c::SO_SNDTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
         self.inner.timeout(c::SO_RCVTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
         self.inner.timeout(c::SO_SNDTIMEO)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_broadcast(&self, broadcast: bool) -> io::Result<()> {
         setsockopt(&self.inner, c::SOL_SOCKET, c::SO_BROADCAST, broadcast as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn broadcast(&self) -> io::Result<bool> {
         let raw: c_int = getsockopt(&self.inner, c::SOL_SOCKET, c::SO_BROADCAST)?;
         Ok(raw != 0)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_multicast_loop_v4(&self, multicast_loop_v4: bool) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_MULTICAST_LOOP, multicast_loop_v4 as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn multicast_loop_v4(&self) -> io::Result<bool> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_MULTICAST_LOOP)?;
         Ok(raw != 0)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_multicast_ttl_v4(&self, multicast_ttl_v4: u32) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_MULTICAST_TTL, multicast_ttl_v4 as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn multicast_ttl_v4(&self) -> io::Result<u32> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_MULTICAST_TTL)?;
         Ok(raw as u32)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_multicast_loop_v6(&self, multicast_loop_v6: bool) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_MULTICAST_LOOP, multicast_loop_v6 as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn multicast_loop_v6(&self) -> io::Result<bool> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_MULTICAST_LOOP)?;
         Ok(raw != 0)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn join_multicast_v4(&self, multiaddr: &Ipv4Addr, interface: &Ipv4Addr)
                          -> io::Result<()> {
         let mreq = c::ip_mreq {
@@ -539,6 +577,7 @@ impl UdpSocket {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_ADD_MEMBERSHIP, mreq)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn join_multicast_v6(&self, multiaddr: &Ipv6Addr, interface: u32)
                          -> io::Result<()> {
         let mreq = c::ipv6_mreq {
@@ -548,6 +587,7 @@ impl UdpSocket {
         setsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, mreq)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn leave_multicast_v4(&self, multiaddr: &Ipv4Addr, interface: &Ipv4Addr)
                           -> io::Result<()> {
         let mreq = c::ip_mreq {
@@ -557,6 +597,7 @@ impl UdpSocket {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_DROP_MEMBERSHIP, mreq)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn leave_multicast_v6(&self, multiaddr: &Ipv6Addr, interface: u32)
                           -> io::Result<()> {
         let mreq = c::ipv6_mreq {
@@ -566,10 +607,12 @@ impl UdpSocket {
         setsockopt(&self.inner, c::IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, mreq)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL, ttl as c_int)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn ttl(&self) -> io::Result<u32> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL)?;
         Ok(raw as u32)
@@ -602,6 +645,7 @@ impl UdpSocket {
         Ok(ret as usize)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn connect(&self, addr: &SocketAddr) -> io::Result<()> {
         let (addrp, len) = addr.into_inner();
         cvt_r(|| unsafe { c::connect(*self.inner.as_inner(), addrp, len) }).map(|_| ())

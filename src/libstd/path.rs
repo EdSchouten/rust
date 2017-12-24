@@ -77,6 +77,8 @@
 
 #![stable(feature = "rust1", since = "1.0.0")]
 
+extern crate cloudabi;
+
 use borrow::{Borrow, Cow};
 use cmp;
 use error::Error;
@@ -1577,6 +1579,8 @@ impl AsRef<OsStr> for PathBuf {
 /// ```
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct Path {
+    #[cfg(target_os = "cloudabi")]
+    dirfd: cloudabi::fd,
     inner: OsStr,
 }
 
@@ -1625,6 +1629,7 @@ impl Path {
     /// let from_path = Path::new(&from_string);
     /// assert_eq!(from_string, from_path);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn new<S: AsRef<OsStr> + ?Sized>(s: &S) -> &Path {
         unsafe { &*(s.as_ref() as *const OsStr as *const Path) }

@@ -26,8 +26,11 @@
 use error::Error;
 use ffi::{OsStr, OsString};
 use fmt;
+#[cfg(not(target_os = "cloudabi"))]
 use io;
+#[cfg(not(target_os = "cloudabi"))]
 use path::{Path, PathBuf};
+#[cfg(not(target_os = "cloudabi"))]
 use sys;
 use sys::os as os_imp;
 
@@ -53,6 +56,7 @@ use sys::os as os_imp;
 /// let path = env::current_dir().unwrap();
 /// println!("The current directory is {}", path.display());
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn current_dir() -> io::Result<PathBuf> {
     os_imp::getcwd()
@@ -74,6 +78,7 @@ pub fn current_dir() -> io::Result<PathBuf> {
 /// assert!(env::set_current_dir(&root).is_ok());
 /// println!("Successfully changed working directory to {}!", root.display());
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn set_current_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
     os_imp::chdir(path.as_ref())
@@ -310,11 +315,13 @@ impl Error for VarError {
 /// env::set_var(key, "VALUE");
 /// assert_eq!(env::var(key), Ok("VALUE".to_string()));
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn set_var<K: AsRef<OsStr>, V: AsRef<OsStr>>(k: K, v: V) {
     _set_var(k.as_ref(), v.as_ref())
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 fn _set_var(k: &OsStr, v: &OsStr) {
     os_imp::setenv(k, v).unwrap_or_else(|e| {
         panic!("failed to set environment variable `{:?}` to `{:?}`: {}",
@@ -353,11 +360,13 @@ fn _set_var(k: &OsStr, v: &OsStr) {
 /// env::remove_var(key);
 /// assert!(env::var(key).is_err());
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn remove_var<K: AsRef<OsStr>>(k: K) {
     _remove_var(k.as_ref())
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 fn _remove_var(k: &OsStr) {
     os_imp::unsetenv(k).unwrap_or_else(|e| {
         panic!("failed to remove environment variable `{:?}`: {}", k, e)
@@ -371,6 +380,7 @@ fn _remove_var(k: &OsStr) {
 /// documentation for more.
 ///
 /// [`std::env::split_paths`]: fn.split_paths.html
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub struct SplitPaths<'a> { inner: os_imp::SplitPaths<'a> }
 
@@ -394,11 +404,13 @@ pub struct SplitPaths<'a> { inner: os_imp::SplitPaths<'a> }
 ///     None => println!("{} is not defined in the environment.", key)
 /// }
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn split_paths<T: AsRef<OsStr> + ?Sized>(unparsed: &T) -> SplitPaths {
     SplitPaths { inner: os_imp::split_paths(unparsed.as_ref()) }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl<'a> Iterator for SplitPaths<'a> {
     type Item = PathBuf;
@@ -406,6 +418,7 @@ impl<'a> Iterator for SplitPaths<'a> {
     fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl<'a> fmt::Debug for SplitPaths<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -417,6 +430,7 @@ impl<'a> fmt::Debug for SplitPaths<'a> {
 /// the [`env::join_paths`] function.
 ///
 /// [`env::join_paths`]: fn.join_paths.html
+#[cfg(not(target_os = "cloudabi"))]
 #[derive(Debug)]
 #[stable(feature = "env", since = "1.0.0")]
 pub struct JoinPathsError {
@@ -478,6 +492,7 @@ pub struct JoinPathsError {
 ///     env::set_var("PATH", &new_path);
 /// }
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn join_paths<I, T>(paths: I) -> Result<OsString, JoinPathsError>
     where I: IntoIterator<Item=T>, T: AsRef<OsStr>
@@ -487,6 +502,7 @@ pub fn join_paths<I, T>(paths: I) -> Result<OsString, JoinPathsError>
     })
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl fmt::Display for JoinPathsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -494,6 +510,7 @@ impl fmt::Display for JoinPathsError {
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl Error for JoinPathsError {
     fn description(&self) -> &str { self.inner.description() }
@@ -528,6 +545,7 @@ impl Error for JoinPathsError {
 ///     None => println!("Impossible to get your home dir!"),
 /// }
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn home_dir() -> Option<PathBuf> {
     os_imp::home_dir()
@@ -564,6 +582,7 @@ pub fn home_dir() -> Option<PathBuf> {
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn temp_dir() -> PathBuf {
     os_imp::temp_dir()
@@ -629,6 +648,7 @@ pub fn temp_dir() -> PathBuf {
 ///     Err(e) => println!("failed to get current exe path: {}", e),
 /// };
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn current_exe() -> io::Result<PathBuf> {
     os_imp::current_exe()
@@ -646,6 +666,7 @@ pub fn current_exe() -> io::Result<PathBuf> {
 ///
 /// [`String`]: ../string/struct.String.html
 /// [`std::env::args`]: ./fn.args.html
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub struct Args { inner: ArgsOs }
 
@@ -661,6 +682,7 @@ pub struct Args { inner: ArgsOs }
 ///
 /// [`OsString`]: ../ffi/struct.OsString.html
 /// [`std::env::args_os`]: ./fn.args_os.html
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub struct ArgsOs { inner: sys::args::Args }
 
@@ -693,6 +715,7 @@ pub struct ArgsOs { inner: sys::args::Args }
 /// ```
 ///
 /// [`args_os`]: ./fn.args_os.html
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn args() -> Args {
     Args { inner: args_os() }
@@ -715,11 +738,13 @@ pub fn args() -> Args {
 ///     println!("{:?}", argument);
 /// }
 /// ```
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 pub fn args_os() -> ArgsOs {
     ArgsOs { inner: sys::args::args() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl Iterator for Args {
     type Item = String;
@@ -729,12 +754,14 @@ impl Iterator for Args {
     fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl ExactSizeIterator for Args {
     fn len(&self) -> usize { self.inner.len() }
     fn is_empty(&self) -> bool { self.inner.is_empty() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env_iterators", since = "1.12.0")]
 impl DoubleEndedIterator for Args {
     fn next_back(&mut self) -> Option<String> {
@@ -742,6 +769,7 @@ impl DoubleEndedIterator for Args {
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl fmt::Debug for Args {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -751,6 +779,7 @@ impl fmt::Debug for Args {
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl Iterator for ArgsOs {
     type Item = OsString;
@@ -758,17 +787,20 @@ impl Iterator for ArgsOs {
     fn size_hint(&self) -> (usize, Option<usize>) { self.inner.size_hint() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env", since = "1.0.0")]
 impl ExactSizeIterator for ArgsOs {
     fn len(&self) -> usize { self.inner.len() }
     fn is_empty(&self) -> bool { self.inner.is_empty() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "env_iterators", since = "1.12.0")]
 impl DoubleEndedIterator for ArgsOs {
     fn next_back(&mut self) -> Option<OsString> { self.inner.next_back() }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl fmt::Debug for ArgsOs {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -29,6 +29,7 @@ doc = false
 #
 # See https://github.com/rust-lang/rfcs/pull/1133.
 core = { path = "../../libcore" }
+cloudabi = { path = "../../libcloudabi/rust" }
 
 [features]
 # Certain parts of libc are conditionally compiled differently than when used

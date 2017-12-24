@@ -37,6 +37,7 @@ cfg_if! {
 
         #[cfg(target_os = "android")]    pub mod android;
         #[cfg(target_os = "bitrig")]     pub mod bitrig;
+        #[cfg(target_os = "cloudabi")]   pub mod cloudabi;
         #[cfg(target_os = "dragonfly")]  pub mod dragonfly;
         #[cfg(target_os = "freebsd")]    pub mod freebsd;
         #[cfg(target_os = "haiku")]      pub mod haiku;

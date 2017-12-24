@@ -116,6 +116,10 @@
 
 #![stable(feature = "process", since = "1.0.0")]
 
+cfg_if! {
+if #[cfg(target_os = "cloudabi")] {
+} else {
+
 use io::prelude::*;
 
 use ffi::OsStr;
@@ -1822,4 +1826,7 @@ mod tests {
         }
         assert!(events > 0);
     }
+}
+
+}
 }

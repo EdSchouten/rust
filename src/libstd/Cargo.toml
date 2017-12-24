@@ -38,6 +38,9 @@ rustc_lsan = { path = "../librustc_lsan" }
 rustc_msan = { path = "../librustc_msan" }
 rustc_tsan = { path = "../librustc_tsan" }
 
+[target.x86_64-unknown-cloudabi.dependencies]
+cloudabi = { path = "../libcloudabi/rust" }
+
 [build-dependencies]
 build_helper = { path = "../build_helper" }
 

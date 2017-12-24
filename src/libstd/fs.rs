@@ -525,6 +525,7 @@ impl File {
     /// # Ok(())
     /// # }
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "set_permissions_atomic", since = "1.16.0")]
     pub fn set_permissions(&self, perm: Permissions) -> io::Result<()> {
         self.inner.set_permissions(perm.0)

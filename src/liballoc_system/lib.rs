@@ -197,7 +197,11 @@ mod platform {
             }
         }
 
-        fn oom(&mut self, err: AllocErr) -> ! {
+        fn oom(&mut self, _: AllocErr) -> ! {
+            unsafe {
+                ::core::intrinsics::abort();
+            }
+/*
             use core::fmt::{self, Write};
 
             // Print a message to stderr before aborting to assist with
@@ -222,6 +226,7 @@ mod platform {
                     Ok(())
                 }
             }
+*/
         }
     }
 
@@ -430,7 +435,11 @@ mod platform {
             }
         }
 
-        fn oom(&mut self, err: AllocErr) -> ! {
+        fn oom(&mut self, _: AllocErr) -> ! {
+            unsafe {
+                ::core::intrinsics::abort();
+            }
+/*
             use core::fmt::{self, Write};
 
             // Same as with unix we ignore all errors here
@@ -456,6 +465,7 @@ mod platform {
                     Ok(())
                 }
             }
+*/
         }
     }
 }

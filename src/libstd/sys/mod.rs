@@ -33,7 +33,10 @@
 #![allow(missing_debug_implementations)]
 
 cfg_if! {
-    if #[cfg(unix)] {
+    if #[cfg(target_os = "cloudabi")] {
+        mod cloudabi;
+        pub use self::cloudabi::*;
+    } else if #[cfg(unix)] {
         mod unix;
         pub use self::unix::*;
     } else if #[cfg(windows)] {

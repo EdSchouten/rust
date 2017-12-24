@@ -51,6 +51,7 @@ fn lang_start(main: fn(), argc: isize, argv: *const *const u8) -> isize {
         thread_info::set(main_guard, thread);
 
         // Store our args if necessary in a squirreled away location
+        #[cfg(not(target_os = "cloudabi"))]
         sys::args::init(argc, argv);
 
         // Let's run some code!
