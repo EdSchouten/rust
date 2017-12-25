@@ -1,59 +1,56 @@
 extern crate cloudabi;
 
-use io::{self, Error, ErrorKind, SeekFrom};
+use io::{self, SeekFrom};
 use mem;
-use path::{Path, PathBuf};
 use sys::fd::FileDesc;
+use sys::time::SystemTime;
+use sys_common::AsInner;
 
 #[derive(Debug)]
 pub struct File(FileDesc);
 
 #[derive(Clone)]
-pub struct FileAttr {}
-
-#[derive(Debug)]
-pub struct ReadDir {}
-
-pub struct DirEntry {}
-
-#[derive(Clone, Debug)]
-pub struct OpenOptions {
-    // generic
-    read: bool,
-    write: bool,
-    append: bool,
-    truncate: bool,
-    create: bool,
-    create_new: bool,
+pub struct FileAttr {
+    stat: cloudabi::filestat,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct FilePermissions {}
-
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct FileType { mode: u8 }
+pub struct FileType {
+    filetype: cloudabi::filetype,
+}
 
-#[derive(Debug)]
-pub struct DirBuilder {}
+impl FileAttr {
+    pub fn size(&self) -> u64 { self.stat.st_size as u64 }
 
-impl OpenOptions {
-    pub fn new() -> OpenOptions {
-        OpenOptions {
-            read: false,
-            write: false,
-            append: false,
-            truncate: false,
-            create: false,
-            create_new: false,
-        }
+    pub fn file_type(&self) -> FileType {
+        FileType { filetype: self.stat.st_filetype }
     }
 
-    pub fn read(&mut self, read: bool) { self.read = read; }
-    pub fn write(&mut self, write: bool) { self.write = write; }
-    pub fn append(&mut self, append: bool) { self.append = append; }
-    pub fn truncate(&mut self, truncate: bool) { self.truncate = truncate; }
-    pub fn create(&mut self, create: bool) { self.create = create; }
-    pub fn create_new(&mut self, create_new: bool) { self.create_new = create_new; }
+    pub fn modified(&self) -> io::Result<SystemTime> {
+        Ok(SystemTime::from(self.stat.st_mtim))
+    }
+
+    pub fn accessed(&self) -> io::Result<SystemTime> {
+        Ok(SystemTime::from(self.stat.st_atim))
+    }
+}
+
+impl AsInner<cloudabi::filestat> for FileAttr {
+    fn as_inner(&self) -> &cloudabi::filestat { &self.stat }
+}
+
+impl FileType {
+    pub fn is_dir(&self) -> bool {
+        self.filetype == cloudabi::filetype::DIRECTORY
+    }
+
+    pub fn is_file(&self) -> bool {
+        self.filetype == cloudabi::filetype::REGULAR_FILE
+    }
+
+    pub fn is_symlink(&self) -> bool {
+        self.filetype == cloudabi::filetype::SYMBOLIC_LINK
+    }
 }
 
 impl File {
@@ -61,16 +58,16 @@ impl File {
         let mut stat: cloudabi::filestat;
         let ret = unsafe { cloudabi::file_stat_fget(self.0.raw(), &mut stat) };
         if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret))
+            Err(io::Error::from_raw_os_error(ret as i32))
         } else {
-            Ok(())
+            Ok(FileAttr { stat: stat })
         }
     }
 
     pub fn fsync(&self) -> io::Result<()> {
         let ret = unsafe { cloudabi::fd_sync(self.0.raw()) };
         if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret))
+            Err(io::Error::from_raw_os_error(ret as i32))
         } else {
             Ok(())
         }
@@ -79,7 +76,7 @@ impl File {
     pub fn datasync(&self) -> io::Result<()> {
         let ret = unsafe { cloudabi::fd_datasync(self.0.raw()) };
         if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret))
+            Err(io::Error::from_raw_os_error(ret as i32))
         } else {
             Ok(())
         }
@@ -90,9 +87,9 @@ impl File {
             st_size: size,
             ..mem::zeroed()
         };
-        let ret = unsafe { cloudabi::fd_datasync(self.0.raw(), &attr, cloudabi::fsflags::SIZE) };
+        let ret = unsafe { cloudabi::file_stat_fput(self.0.raw(), &attr, cloudabi::fsflags::SIZE) };
         if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret))
+            Err(io::Error::from_raw_os_error(ret as i32))
         } else {
             Ok(())
         }
@@ -118,14 +115,14 @@ impl File {
 
     pub fn seek(&self, pos: SeekFrom) -> io::Result<u64> {
         let (whence, offset) = match pos {
-            SeekFrom::Start(off) => (cloudabi::whence::SET, off),
+            SeekFrom::Start(off) => (cloudabi::whence::SET, off as i64),
             SeekFrom::End(off) => (cloudabi::whence::END, off),
             SeekFrom::Current(off) => (cloudabi::whence::CUR, off),
         };
         let mut newoffset: cloudabi::filesize = 0;
         let ret = unsafe { cloudabi::fd_seek(self.0.raw(), offset, whence, &mut newoffset) };
         if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret))
+            Err(io::Error::from_raw_os_error(ret as i32))
         } else {
             Ok(newoffset)
         }
@@ -138,56 +135,4 @@ impl File {
     pub fn fd(&self) -> &FileDesc { &self.0 }
 
     pub fn into_fd(self) -> FileDesc { self.0 }
-}
-
-pub fn readdir(p: &Path) -> io::Result<ReadDir> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn unlink(p: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn set_perm(p: &Path, perm: FilePermissions) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn rmdir(p: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn remove_dir_all(path: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn readlink(p: &Path) -> io::Result<PathBuf> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn symlink(src: &Path, dst: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn link(_src: &Path, _dst: &Path) -> io::Result<()> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn lstat(p: &Path) -> io::Result<FileAttr> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn canonicalize(p: &Path) -> io::Result<PathBuf> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
-}
-
-pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
-    Err(Error::new(ErrorKind::Other, "Not implemented"))
 }

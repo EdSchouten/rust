@@ -81,8 +81,10 @@ use borrow::{Borrow, Cow};
 use cmp;
 use error::Error;
 use fmt;
+#[cfg(not(target_os = "cloudabi"))]
 use fs;
 use hash::{Hash, Hasher};
+#[cfg(not(target_os = "cloudabi"))]
 use io;
 use iter::{self, FusedIterator};
 use ops::{self, Deref};
@@ -2167,6 +2169,7 @@ impl Path {
     /// let metadata = path.metadata().expect("metadata call failed");
     /// println!("{:?}", metadata.file_type());
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn metadata(&self) -> io::Result<fs::Metadata> {
         fs::metadata(self)
@@ -2187,6 +2190,7 @@ impl Path {
     /// let metadata = path.symlink_metadata().expect("symlink_metadata call failed");
     /// println!("{:?}", metadata.file_type());
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn symlink_metadata(&self) -> io::Result<fs::Metadata> {
         fs::symlink_metadata(self)
@@ -2207,6 +2211,7 @@ impl Path {
     /// let path = Path::new("/foo/test/../test/bar.rs");
     /// assert_eq!(path.canonicalize().unwrap(), PathBuf::from("/foo/test/bar.rs"));
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn canonicalize(&self) -> io::Result<PathBuf> {
         fs::canonicalize(self)
@@ -2226,6 +2231,7 @@ impl Path {
     /// let path = Path::new("/laputa/sky_castle.rs");
     /// let path_link = path.read_link().expect("read_link call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn read_link(&self) -> io::Result<PathBuf> {
         fs::read_link(self)
@@ -2254,6 +2260,7 @@ impl Path {
     ///     }
     /// }
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn read_dir(&self) -> io::Result<fs::ReadDir> {
         fs::read_dir(self)
@@ -2280,6 +2287,7 @@ impl Path {
     /// check errors, call [fs::metadata].
     ///
     /// [fs::metadata]: ../../std/fs/fn.metadata.html
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn exists(&self) -> bool {
         fs::metadata(self).is_ok()
@@ -2309,6 +2317,7 @@ impl Path {
     ///
     /// [fs::metadata]: ../../std/fs/fn.metadata.html
     /// [fs::Metadata::is_file]: ../../std/fs/struct.Metadata.html#method.is_file
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn is_file(&self) -> bool {
         fs::metadata(self).map(|m| m.is_file()).unwrap_or(false)
@@ -2338,6 +2347,7 @@ impl Path {
     ///
     /// [fs::metadata]: ../../std/fs/fn.metadata.html
     /// [fs::Metadata::is_dir]: ../../std/fs/struct.Metadata.html#method.is_dir
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "path_ext", since = "1.5.0")]
     pub fn is_dir(&self) -> bool {
         fs::metadata(self).map(|m| m.is_dir()).unwrap_or(false)

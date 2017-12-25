@@ -85,8 +85,8 @@ impl Thread {
     }
 
     pub fn yield_now() {
-        let ret = unsafe { libc::sched_yield() };
-        debug_assert_eq!(ret, 0);
+        let ret = unsafe { cloudabi::thread_yield() };
+        debug_assert_eq!(ret, cloudabi::errno::SUCCESS);
     }
 
     pub fn set_name(_name: &CStr) {
@@ -106,8 +106,10 @@ impl Thread {
                     clock: cloudabi::subscription_clock {
                         clock_id: cloudabi::clockid::REALTIME,
                         timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos(),
+                        ..mem::zeroed()
                     }
-                }
+                },
+                ..mem::zeroed()
             };
             // TODO(ed): Implement!
         }
