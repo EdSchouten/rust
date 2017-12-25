@@ -9,10 +9,17 @@
 // except according to those terms.
 
 use fmt;
-use io::{self, Error, ErrorKind};
-use net::{ToSocketAddrs, SocketAddr, Ipv4Addr, Ipv6Addr};
+use io;
+#[cfg(not(target_os = "cloudabi"))]
+use io::{Error, ErrorKind};
+use net::SocketAddr;
+#[cfg(not(target_os = "cloudabi"))]
+use net::{Ipv4Addr, Ipv6Addr};
+#[cfg(not(target_os = "cloudabi"))]
+use net::ToSocketAddrs;
 use sys_common::net as net_imp;
 use sys_common::{AsInner, FromInner, IntoInner};
+#[cfg(not(target_os = "cloudabi"))]
 use time::Duration;
 
 /// A UDP socket.
@@ -99,6 +106,7 @@ impl UdpSocket {
     /// ];
     /// let socket = UdpSocket::bind(&addrs[..]).expect("couldn't bind to address");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn bind<A: ToSocketAddrs>(addr: A) -> io::Result<UdpSocket> {
         super::each_addr(addr, net_imp::UdpSocket::bind).map(UdpSocket)
@@ -180,6 +188,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.send_to(&[0; 10], "127.0.0.1:4242").expect("couldn't send data");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn send_to<A: ToSocketAddrs>(&self, buf: &[u8], addr: A)
                                      -> io::Result<usize> {
@@ -201,6 +210,7 @@ impl UdpSocket {
     /// assert_eq!(socket.local_addr().unwrap(),
     ///            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 34254)));
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
         self.0.socket_addr()
@@ -251,6 +261,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_read_timeout(None).expect("set_read_timeout call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.0.set_read_timeout(dur)
@@ -282,6 +293,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_write_timeout(None).expect("set_write_timeout call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.0.set_write_timeout(dur)
@@ -303,6 +315,7 @@ impl UdpSocket {
     /// socket.set_read_timeout(None).expect("set_read_timeout call failed");
     /// assert_eq!(socket.read_timeout().unwrap(), None);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
         self.0.read_timeout()
@@ -324,6 +337,7 @@ impl UdpSocket {
     /// socket.set_write_timeout(None).expect("set_write_timeout call failed");
     /// assert_eq!(socket.write_timeout().unwrap(), None);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
         self.0.write_timeout()
@@ -342,6 +356,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_broadcast(false).expect("set_broadcast call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_broadcast(&self, broadcast: bool) -> io::Result<()> {
         self.0.set_broadcast(broadcast)
@@ -363,6 +378,7 @@ impl UdpSocket {
     /// socket.set_broadcast(false).expect("set_broadcast call failed");
     /// assert_eq!(socket.broadcast().unwrap(), false);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn broadcast(&self) -> io::Result<bool> {
         self.0.broadcast()
@@ -381,6 +397,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_multicast_loop_v4(false).expect("set_multicast_loop_v4 call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_multicast_loop_v4(&self, multicast_loop_v4: bool) -> io::Result<()> {
         self.0.set_multicast_loop_v4(multicast_loop_v4)
@@ -402,6 +419,7 @@ impl UdpSocket {
     /// socket.set_multicast_loop_v4(false).expect("set_multicast_loop_v4 call failed");
     /// assert_eq!(socket.multicast_loop_v4().unwrap(), false);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn multicast_loop_v4(&self) -> io::Result<bool> {
         self.0.multicast_loop_v4()
@@ -423,6 +441,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_multicast_ttl_v4(42).expect("set_multicast_ttl_v4 call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_multicast_ttl_v4(&self, multicast_ttl_v4: u32) -> io::Result<()> {
         self.0.set_multicast_ttl_v4(multicast_ttl_v4)
@@ -444,6 +463,7 @@ impl UdpSocket {
     /// socket.set_multicast_ttl_v4(42).expect("set_multicast_ttl_v4 call failed");
     /// assert_eq!(socket.multicast_ttl_v4().unwrap(), 42);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn multicast_ttl_v4(&self) -> io::Result<u32> {
         self.0.multicast_ttl_v4()
@@ -462,6 +482,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_multicast_loop_v6(false).expect("set_multicast_loop_v6 call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_multicast_loop_v6(&self, multicast_loop_v6: bool) -> io::Result<()> {
         self.0.set_multicast_loop_v6(multicast_loop_v6)
@@ -483,6 +504,7 @@ impl UdpSocket {
     /// socket.set_multicast_loop_v6(false).expect("set_multicast_loop_v6 call failed");
     /// assert_eq!(socket.multicast_loop_v6().unwrap(), false);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn multicast_loop_v6(&self) -> io::Result<bool> {
         self.0.multicast_loop_v6()
@@ -501,6 +523,7 @@ impl UdpSocket {
     /// let socket = UdpSocket::bind("127.0.0.1:34254").expect("couldn't bind to address");
     /// socket.set_ttl(42).expect("set_ttl call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         self.0.set_ttl(ttl)
@@ -521,6 +544,7 @@ impl UdpSocket {
     /// socket.set_ttl(42).expect("set_ttl call failed");
     /// assert_eq!(socket.ttl().unwrap(), 42);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn ttl(&self) -> io::Result<u32> {
         self.0.ttl()
@@ -533,6 +557,7 @@ impl UdpSocket {
     /// address of the local interface with which the system should join the
     /// multicast group. If it's equal to `INADDR_ANY` then an appropriate
     /// interface is chosen by the system.
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn join_multicast_v4(&self, multiaddr: &Ipv4Addr, interface: &Ipv4Addr) -> io::Result<()> {
         self.0.join_multicast_v4(multiaddr, interface)
@@ -543,6 +568,7 @@ impl UdpSocket {
     /// This function specifies a new multicast group for this socket to join.
     /// The address must be a valid multicast address, and `interface` is the
     /// index of the interface to join/leave (or 0 to indicate any interface).
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn join_multicast_v6(&self, multiaddr: &Ipv6Addr, interface: u32) -> io::Result<()> {
         self.0.join_multicast_v6(multiaddr, interface)
@@ -554,6 +580,7 @@ impl UdpSocket {
     /// [`join_multicast_v4`][link].
     ///
     /// [link]: #method.join_multicast_v4
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn leave_multicast_v4(&self, multiaddr: &Ipv4Addr, interface: &Ipv4Addr) -> io::Result<()> {
         self.0.leave_multicast_v4(multiaddr, interface)
@@ -565,6 +592,7 @@ impl UdpSocket {
     /// [`join_multicast_v6`][link].
     ///
     /// [link]: #method.join_multicast_v6
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn leave_multicast_v6(&self, multiaddr: &Ipv6Addr, interface: u32) -> io::Result<()> {
         self.0.leave_multicast_v6(multiaddr, interface)
@@ -621,6 +649,7 @@ impl UdpSocket {
     /// function of a UDP socket is not a useful thing to do: The OS will be
     /// unable to determine whether something is listening on the remote
     /// address without the application sending data.
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn connect<A: ToSocketAddrs>(&self, addr: A) -> io::Result<()> {
         super::each_addr(addr, |addr| self.0.connect(addr))

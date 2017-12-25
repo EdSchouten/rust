@@ -12,7 +12,9 @@ use io::prelude::*;
 
 use fmt;
 use io::{self, Initializer};
-use net::{ToSocketAddrs, SocketAddr, Shutdown};
+use net::{SocketAddr, Shutdown};
+#[cfg(not(target_os = "cloudabi"))]
+use net::ToSocketAddrs;
 use sys_common::net as net_imp;
 use sys_common::{AsInner, FromInner, IntoInner};
 use time::Duration;
@@ -149,6 +151,7 @@ impl TcpStream {
     ///     println!("Couldn't connect to server...");
     /// }
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn connect<A: ToSocketAddrs>(addr: A) -> io::Result<TcpStream> {
         super::each_addr(addr, net_imp::TcpStream::connect).map(TcpStream)
@@ -184,6 +187,7 @@ impl TcpStream {
     /// assert_eq!(stream.peer_addr().unwrap(),
     ///            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 8080)));
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn peer_addr(&self) -> io::Result<SocketAddr> {
         self.0.peer_addr()
@@ -201,6 +205,7 @@ impl TcpStream {
     /// assert_eq!(stream.local_addr().unwrap().ip(),
     ///            IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
         self.0.socket_addr()
@@ -282,6 +287,7 @@ impl TcpStream {
     ///                        .expect("Couldn't connect to the server...");
     /// stream.set_read_timeout(None).expect("set_read_timeout call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn set_read_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.0.set_read_timeout(dur)
@@ -314,6 +320,7 @@ impl TcpStream {
     ///                        .expect("Couldn't connect to the server...");
     /// stream.set_write_timeout(None).expect("set_write_timeout call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn set_write_timeout(&self, dur: Option<Duration>) -> io::Result<()> {
         self.0.set_write_timeout(dur)
@@ -340,6 +347,7 @@ impl TcpStream {
     /// stream.set_read_timeout(None).expect("set_read_timeout call failed");
     /// assert_eq!(stream.read_timeout().unwrap(), None);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
         self.0.read_timeout()
@@ -366,6 +374,7 @@ impl TcpStream {
     /// stream.set_write_timeout(None).expect("set_write_timeout call failed");
     /// assert_eq!(stream.write_timeout().unwrap(), None);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "socket_timeout", since = "1.4.0")]
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
         self.0.write_timeout()
@@ -450,6 +459,7 @@ impl TcpStream {
     ///                        .expect("Couldn't connect to the server...");
     /// stream.set_ttl(100).expect("set_ttl call failed");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         self.0.set_ttl(ttl)
@@ -471,6 +481,7 @@ impl TcpStream {
     /// stream.set_ttl(100).expect("set_ttl call failed");
     /// assert_eq!(stream.ttl().unwrap_or(0), 100);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn ttl(&self) -> io::Result<u32> {
         self.0.ttl()
@@ -635,6 +646,7 @@ impl TcpListener {
     /// ];
     /// let listener = TcpListener::bind(&addrs[..]).unwrap();
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn bind<A: ToSocketAddrs>(addr: A) -> io::Result<TcpListener> {
         super::each_addr(addr, net_imp::TcpListener::bind).map(TcpListener)
@@ -651,6 +663,7 @@ impl TcpListener {
     /// assert_eq!(listener.local_addr().unwrap(),
     ///            SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 8080)));
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
         self.0.socket_addr()
@@ -696,6 +709,7 @@ impl TcpListener {
     ///     Err(e) => println!("couldn't get client: {:?}", e),
     /// }
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn accept(&self) -> io::Result<(TcpStream, SocketAddr)> {
         self.0.accept().map(|(a, b)| (TcpStream(a), b))
@@ -746,6 +760,7 @@ impl TcpListener {
     /// let listener = TcpListener::bind("127.0.0.1:80").unwrap();
     /// listener.set_ttl(100).expect("could not set TTL");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         self.0.set_ttl(ttl)
@@ -766,11 +781,13 @@ impl TcpListener {
     /// listener.set_ttl(100).expect("could not set TTL");
     /// assert_eq!(listener.ttl().unwrap_or(0), 100);
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn ttl(&self) -> io::Result<u32> {
         self.0.ttl()
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     #[rustc_deprecated(since = "1.16.0",
                        reason = "this option can only be set before the socket is bound")]
@@ -779,6 +796,7 @@ impl TcpListener {
         self.0.set_only_v6(only_v6)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     #[rustc_deprecated(since = "1.16.0",
                        reason = "this option can only be set before the socket is bound")]
@@ -856,6 +874,7 @@ impl TcpListener {
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<'a> Iterator for Incoming<'a> {
     type Item = io::Result<TcpStream>;
