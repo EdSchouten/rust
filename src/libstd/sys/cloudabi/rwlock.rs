@@ -8,7 +8,9 @@ pub struct RWLock {
 
 impl RWLock {
     pub const fn new() -> RWLock {
-        RWLock { lock: AtomicU32::new(cloudabi::LOCK_UNLOCKED.0) }
+        RWLock {
+            lock: AtomicU32::new(cloudabi::LOCK_UNLOCKED.0),
+        }
     }
 
     pub unsafe fn try_read(&self) -> bool {

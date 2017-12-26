@@ -16,34 +16,42 @@ pub type wrlen_t = size_t;
 pub struct Socket(FileDesc);
 
 impl AsInner<c_int> for Socket {
-    fn as_inner(&self) -> &c_int { self.0.as_inner() }
+    fn as_inner(&self) -> &c_int {
+        self.0.as_inner()
+    }
 }
 
 impl FromInner<c_int> for Socket {
-    fn from_inner(fd: c_int) -> Socket { Socket(FileDesc::new(fd)) }
+    fn from_inner(fd: c_int) -> Socket {
+        Socket(FileDesc::new(fd))
+    }
 }
 
 impl IntoInner<c_int> for Socket {
-    fn into_inner(self) -> c_int { self.0.into_raw() }
+    fn into_inner(self) -> c_int {
+        self.0.into_raw()
+    }
 }
 
 pub fn init() {}
 
 pub fn cvt_gai(err: c_int) -> io::Result<()> {
     if err == 0 {
-        return Ok(())
+        return Ok(());
     }
     if err == EAI_SYSTEM {
-        return Err(io::Error::last_os_error())
+        return Err(io::Error::last_os_error());
     }
 
     let detail = unsafe {
-        str::from_utf8(CStr::from_ptr(libc::gai_strerror(err)).to_bytes()).unwrap()
+        str::from_utf8(CStr::from_ptr(libc::gai_strerror(err)).to_bytes())
+            .unwrap()
             .to_owned()
     };
-    Err(io::Error::new(io::ErrorKind::Other,
-                       &format!("failed to lookup address information: {}",
-                                detail)[..]))
+    Err(io::Error::new(
+        io::ErrorKind::Other,
+        &format!("failed to lookup address information: {}", detail)[..],
+    ))
 }
 
 impl Socket {

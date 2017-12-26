@@ -18,10 +18,6 @@ impl Handler {
     }
 }
 
-pub unsafe fn init() {
+pub unsafe fn init() {}
 
-}
-
-pub unsafe fn cleanup() {
-
-}
+pub unsafe fn cleanup() {}

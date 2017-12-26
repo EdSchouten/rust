@@ -21,10 +21,14 @@ pub struct FileType {
 }
 
 impl FileAttr {
-    pub fn size(&self) -> u64 { self.stat.st_size as u64 }
+    pub fn size(&self) -> u64 {
+        self.stat.st_size as u64
+    }
 
     pub fn file_type(&self) -> FileType {
-        FileType { filetype: self.stat.st_filetype }
+        FileType {
+            filetype: self.stat.st_filetype,
+        }
     }
 
     pub fn modified(&self) -> io::Result<SystemTime> {
@@ -37,7 +41,9 @@ impl FileAttr {
 }
 
 impl AsInner<cloudabi::filestat> for FileAttr {
-    fn as_inner(&self) -> &cloudabi::filestat { &self.stat }
+    fn as_inner(&self) -> &cloudabi::filestat {
+        &self.stat
+    }
 }
 
 impl FileType {
@@ -91,7 +97,11 @@ impl File {
                 st_size: size,
                 ..mem::zeroed()
             };
-            let ret = cloudabi::file_stat_fput(cloudabi::fd(self.0.raw() as u32), &attr, cloudabi::fsflags::SIZE);
+            let ret = cloudabi::file_stat_fput(
+                cloudabi::fd(self.0.raw() as u32),
+                &attr,
+                cloudabi::fsflags::SIZE,
+            );
             if ret != cloudabi::errno::SUCCESS {
                 Err(io::Error::from_raw_os_error(ret as i32))
             } else {
@@ -116,7 +126,9 @@ impl File {
         self.0.write_at(buf, offset)
     }
 
-    pub fn flush(&self) -> io::Result<()> { Ok(()) }
+    pub fn flush(&self) -> io::Result<()> {
+        Ok(())
+    }
 
     pub fn seek(&self, pos: SeekFrom) -> io::Result<u64> {
         let (whence, offset) = match pos {
@@ -125,7 +137,14 @@ impl File {
             SeekFrom::Current(off) => (cloudabi::whence::CUR, off),
         };
         let mut newoffset: cloudabi::filesize = 0;
-        let ret = unsafe { cloudabi::fd_seek(cloudabi::fd(self.0.raw() as u32), offset, whence, &mut newoffset) };
+        let ret = unsafe {
+            cloudabi::fd_seek(
+                cloudabi::fd(self.0.raw() as u32),
+                offset,
+                whence,
+                &mut newoffset,
+            )
+        };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -137,9 +156,13 @@ impl File {
         self.0.duplicate().map(File)
     }
 
-    pub fn fd(&self) -> &FileDesc { &self.0 }
+    pub fn fd(&self) -> &FileDesc {
+        &self.0
+    }
 
-    pub fn into_fd(self) -> FileDesc { self.0 }
+    pub fn into_fd(self) -> FileDesc {
+        self.0
+    }
 }
 
 impl FromInner<c_int> for File {

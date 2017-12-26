@@ -14,7 +14,9 @@ pub struct Mutex {
 
 impl Mutex {
     pub const fn new() -> Mutex {
-        Mutex { lock: UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0)) }
+        Mutex {
+            lock: UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0)),
+        }
     }
 
     pub unsafe fn init(&mut self) {

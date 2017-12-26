@@ -35,14 +35,15 @@ unsafe impl Sync for Thread {}
 
 // The pthread_attr_setstacksize symbol doesn't exist in the emscripten libc,
 // so we have to not link to it to satisfy emcc's ERROR_ON_UNDEFINED_SYMBOLS.
-unsafe fn pthread_attr_setstacksize(attr: *mut libc::pthread_attr_t,
-                                    stack_size: libc::size_t) -> libc::c_int {
+unsafe fn pthread_attr_setstacksize(
+    attr: *mut libc::pthread_attr_t,
+    stack_size: libc::size_t,
+) -> libc::c_int {
     libc::pthread_attr_setstacksize(attr, stack_size)
 }
 
 impl Thread {
-    pub unsafe fn new<'a>(stack: usize, p: Box<FnBox() + 'a>)
-                          -> io::Result<Thread> {
+    pub unsafe fn new<'a>(stack: usize, p: Box<FnBox() + 'a>) -> io::Result<Thread> {
         let p = box p;
         let mut native: libc::pthread_t = mem::zeroed();
         let mut attr: libc::pthread_attr_t = mem::zeroed();
@@ -50,8 +51,7 @@ impl Thread {
 
         let stack_size = cmp::max(stack, min_stack_size(&attr));
 
-        match pthread_attr_setstacksize(&mut attr,
-                                        stack_size) {
+        match pthread_attr_setstacksize(&mut attr, stack_size) {
             0 => {}
             n => {
                 assert_eq!(n, libc::EINVAL);
@@ -60,15 +60,13 @@ impl Thread {
                 // >= PTHREAD_STACK_MIN, it must be an alignment issue.
                 // Round up to the nearest page and try again.
                 let page_size = os::page_size();
-                let stack_size = (stack_size + page_size - 1) &
-                                 (-(page_size as isize - 1) as usize - 1);
-                assert_eq!(libc::pthread_attr_setstacksize(&mut attr,
-                                                           stack_size), 0);
+                let stack_size =
+                    (stack_size + page_size - 1) & (-(page_size as isize - 1) as usize - 1);
+                assert_eq!(libc::pthread_attr_setstacksize(&mut attr, stack_size), 0);
             }
         };
 
-        let ret = libc::pthread_create(&mut native, &attr, thread_start,
-                                       &*p as *const _ as *mut _);
+        let ret = libc::pthread_create(&mut native, &attr, thread_start, &*p as *const _ as *mut _);
         assert_eq!(libc::pthread_attr_destroy(&mut attr), 0);
 
         return if ret != 0 {
@@ -78,8 +76,10 @@ impl Thread {
             Ok(Thread { id: native })
         };
 
-        extern fn thread_start(main: *mut libc::c_void) -> *mut libc::c_void {
-            unsafe { start_thread(main as *mut u8); }
+        extern "C" fn thread_start(main: *mut libc::c_void) -> *mut libc::c_void {
+            unsafe {
+                start_thread(main as *mut u8);
+            }
             ptr::null_mut()
         }
     }
@@ -116,12 +116,17 @@ impl Thread {
         unsafe {
             let ret = libc::pthread_join(self.id, ptr::null_mut());
             mem::forget(self);
-            assert!(ret == 0,
-                    "failed to join thread: {}", io::Error::from_raw_os_error(ret));
+            assert!(
+                ret == 0,
+                "failed to join thread: {}",
+                io::Error::from_raw_os_error(ret)
+            );
         }
     }
 
-    pub fn id(&self) -> libc::pthread_t { self.id }
+    pub fn id(&self) -> libc::pthread_t {
+        self.id
+    }
 
     pub fn into_id(self) -> libc::pthread_t {
         let id = self.id;
@@ -139,8 +144,12 @@ impl Drop for Thread {
 
 #[cfg_attr(test, allow(dead_code))]
 pub mod guard {
-    pub unsafe fn current() -> Option<usize> { None }
-    pub unsafe fn init() -> Option<usize> { None }
+    pub unsafe fn current() -> Option<usize> {
+        None
+    }
+    pub unsafe fn init() -> Option<usize> {
+        None
+    }
 }
 
 fn min_stack_size(_: *const libc::pthread_attr_t) -> usize {

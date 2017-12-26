@@ -15,7 +15,9 @@ impl FileDesc {
         FileDesc { fd: fd }
     }
 
-    pub fn raw(&self) -> c_int { self.fd }
+    pub fn raw(&self) -> c_int {
+        self.fd
+    }
 
     /// Extracts the actual filedescriptor without closing it.
     pub fn into_raw(self) -> c_int {
@@ -25,9 +27,11 @@ impl FileDesc {
     }
 
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let iovs = [cloudabi::iovec {
-            buf: (buf.as_mut_ptr() as *mut _ as *mut (), buf.len())
-        }];
+        let iovs = [
+            cloudabi::iovec {
+                buf: (buf.as_mut_ptr() as *mut _ as *mut (), buf.len()),
+            },
+        ];
         let mut nread: usize = 0;
         let ret = unsafe { cloudabi::fd_read(cloudabi::fd(self.fd as u32), &iovs, &mut nread) };
         if ret != cloudabi::errno::SUCCESS {
@@ -38,11 +42,14 @@ impl FileDesc {
     }
 
     pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
-        let iovs = [cloudabi::iovec {
-            buf: (buf.as_mut_ptr() as *mut _ as *mut (), buf.len())
-        }];
+        let iovs = [
+            cloudabi::iovec {
+                buf: (buf.as_mut_ptr() as *mut _ as *mut (), buf.len()),
+            },
+        ];
         let mut nread: usize = 0;
-        let ret = unsafe { cloudabi::fd_pread(cloudabi::fd(self.fd as u32), &iovs, offset, &mut nread) };
+        let ret =
+            unsafe { cloudabi::fd_pread(cloudabi::fd(self.fd as u32), &iovs, offset, &mut nread) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -51,9 +58,11 @@ impl FileDesc {
     }
 
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
-        let iovs = [cloudabi::ciovec {
-            buf: (buf.as_ptr() as *const _ as *const (), buf.len())
-        }];
+        let iovs = [
+            cloudabi::ciovec {
+                buf: (buf.as_ptr() as *const _ as *const (), buf.len()),
+            },
+        ];
         let mut nwritten: usize = 0;
         let ret = unsafe { cloudabi::fd_write(cloudabi::fd(self.fd as u32), &iovs, &mut nwritten) };
         if ret != cloudabi::errno::SUCCESS {
@@ -64,11 +73,15 @@ impl FileDesc {
     }
 
     pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
-        let iovs = [cloudabi::ciovec {
-            buf: (buf.as_ptr() as *const _ as *const (), buf.len())
-        }];
+        let iovs = [
+            cloudabi::ciovec {
+                buf: (buf.as_ptr() as *const _ as *const (), buf.len()),
+            },
+        ];
         let mut nwritten: usize = 0;
-        let ret = unsafe { cloudabi::fd_pwrite(cloudabi::fd(self.fd as u32), &iovs, offset, &mut nwritten) };
+        let ret = unsafe {
+            cloudabi::fd_pwrite(cloudabi::fd(self.fd as u32), &iovs, offset, &mut nwritten)
+        };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -90,7 +103,9 @@ impl FileDesc {
 }
 
 impl AsInner<c_int> for FileDesc {
-    fn as_inner(&self) -> &c_int { &self.fd }
+    fn as_inner(&self) -> &c_int {
+        &self.fd
+    }
 }
 
 impl Drop for FileDesc {

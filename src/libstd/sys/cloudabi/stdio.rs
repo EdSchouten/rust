@@ -3,7 +3,9 @@ use io;
 pub struct Stderr(());
 
 impl Stderr {
-    pub fn new() -> io::Result<Stderr> { Ok(Stderr(())) }
+    pub fn new() -> io::Result<Stderr> {
+        Ok(Stderr(()))
+    }
 
     pub fn write(&self, data: &[u8]) -> io::Result<usize> {
         Ok(data.len())

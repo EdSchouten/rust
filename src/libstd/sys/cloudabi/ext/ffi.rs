@@ -15,7 +15,7 @@
 use ffi::{OsStr, OsString};
 use mem;
 use sys::os_str::Buf;
-use sys_common::{FromInner, IntoInner, AsInner};
+use sys_common::{AsInner, FromInner, IntoInner};
 
 /// Unix-specific extensions to `OsString`.
 #[stable(feature = "rust1", since = "1.0.0")]

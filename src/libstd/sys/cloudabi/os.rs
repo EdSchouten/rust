@@ -1,6 +1,6 @@
 use os::unix::prelude::*;
 
-use ffi::{CString, CStr, OsString, OsStr};
+use ffi::{CStr, CString, OsStr, OsString};
 use io;
 use libc::{self, c_char, c_int};
 use marker::PhantomData;
@@ -9,7 +9,7 @@ use ptr;
 use vec;
 
 pub fn errno() -> i32 {
-    extern {
+    extern "C" {
         #[thread_local]
         static errno: c_int;
     }
@@ -30,12 +30,18 @@ pub struct Env {
 
 impl Iterator for Env {
     type Item = (OsString, OsString);
-    fn next(&mut self) -> Option<(OsString, OsString)> { self.iter.next() }
-    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+    fn next(&mut self) -> Option<(OsString, OsString)> {
+        self.iter.next()
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
 }
 
 pub unsafe fn environ() -> *mut *const *const c_char {
-    extern { static mut environ: *const *const c_char; }
+    extern "C" {
+        static mut environ: *const *const c_char;
+    }
     &mut environ
 }
 
@@ -45,8 +51,10 @@ pub fn env() -> Env {
     unsafe {
         let mut environ = *environ();
         if environ == ptr::null() {
-            panic!("os::env() failure getting env string from OS: {}",
-                   io::Error::last_os_error());
+            panic!(
+                "os::env() failure getting env string from OS: {}",
+                io::Error::last_os_error()
+            );
         }
         let mut result = Vec::new();
         while *environ != ptr::null() {
@@ -59,7 +67,7 @@ pub fn env() -> Env {
             iter: result.into_iter(),
             _dont_send_or_sync_me: PhantomData,
         };
-        return ret
+        return ret;
     }
 
     fn parse(input: &[u8]) -> Option<(OsString, OsString)> {
@@ -71,10 +79,12 @@ pub fn env() -> Env {
             return None;
         }
         let pos = memchr::memchr(b'=', &input[1..]).map(|p| p + 1);
-        pos.map(|p| (
-            OsStringExt::from_vec(input[..p].to_vec()),
-            OsStringExt::from_vec(input[p+1..].to_vec()),
-        ))
+        pos.map(|p| {
+            (
+                OsStringExt::from_vec(input[..p].to_vec()),
+                OsStringExt::from_vec(input[p + 1..].to_vec()),
+            )
+        })
     }
 }
 
@@ -87,14 +97,12 @@ pub fn getenv(k: &OsStr) -> io::Result<Option<OsString>> {
         } else {
             Some(OsStringExt::from_vec(CStr::from_ptr(s).to_bytes().to_vec()))
         };
-        return Ok(ret)
+        return Ok(ret);
     }
 }
 
 pub fn page_size() -> usize {
-    unsafe {
-        libc::sysconf(libc::_SC_PAGESIZE) as usize
-    }
+    unsafe { libc::sysconf(libc::_SC_PAGESIZE) as usize }
 }
 
 pub fn exit(code: i32) -> ! {

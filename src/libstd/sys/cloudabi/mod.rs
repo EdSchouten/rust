@@ -42,8 +42,7 @@ pub fn decode_error_kind(errno: i32) -> ErrorKind {
         // These two constants can have the same value on some systems,
         // but different values on others, so we can't use a match
         // clause
-        x if x == libc::EAGAIN || x == libc::EWOULDBLOCK =>
-            ErrorKind::WouldBlock,
+        x if x == libc::EAGAIN || x == libc::EWOULDBLOCK => ErrorKind::WouldBlock,
 
         _ => ErrorKind::Other,
     }
@@ -69,10 +68,11 @@ pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
 }
 
 pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>
-    where T: IsMinusOne,
-          F: FnMut() -> T
+where
+    T: IsMinusOne,
+    F: FnMut() -> T,
 {
-    return cvt(f())
+    return cvt(f());
 }
 
 pub unsafe fn abort_internal() -> ! {
