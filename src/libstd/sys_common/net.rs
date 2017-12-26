@@ -25,6 +25,7 @@ use sys::net::netc as c;
 use sys_common::{AsInner, FromInner};
 #[cfg(not(target_os = "cloudabi"))]
 use sys_common::IntoInner;
+#[cfg(not(target_os = "cloudabi"))]
 use time::Duration;
 
 #[cfg(any(target_os = "dragonfly",
@@ -217,6 +218,7 @@ impl TcpStream {
         Ok(TcpStream { inner: sock })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn connect_timeout(addr: &SocketAddr, timeout: Duration) -> io::Result<TcpStream> {
         init();
 
@@ -290,10 +292,12 @@ impl TcpStream {
         self.inner.duplicate().map(|s| TcpStream { inner: s })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
         self.inner.set_nodelay(nodelay)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn nodelay(&self) -> io::Result<bool> {
         self.inner.nodelay()
     }
@@ -328,14 +332,6 @@ impl fmt::Debug for TcpStream {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut res = f.debug_struct("TcpStream");
 
-        if let Ok(addr) = self.socket_addr() {
-            res.field("addr", &addr);
-        }
-
-        if let Ok(peer) = self.peer_addr() {
-            res.field("peer", &peer);
-        }
-
         let name = if cfg!(windows) {"socket"} else {"fd"};
         res.field(name, &self.inner.as_inner())
             .finish()
@@ -346,12 +342,13 @@ impl fmt::Debug for TcpStream {
 // TCP listeners
 ////////////////////////////////////////////////////////////////////////////////
 
+#[cfg(not(target_os = "cloudabi"))]
 pub struct TcpListener {
     inner: Socket,
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 impl TcpListener {
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn bind(addr: &SocketAddr) -> io::Result<TcpListener> {
         init();
 
@@ -378,7 +375,6 @@ impl TcpListener {
 
     pub fn into_socket(self) -> Socket { self.inner }
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
         sockname(|buf, len| unsafe {
             c::getsockname(*self.inner.as_inner(), buf, len)
@@ -398,23 +394,19 @@ impl TcpListener {
         self.inner.duplicate().map(|s| TcpListener { inner: s })
     }
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_ttl(&self, ttl: u32) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL, ttl as c_int)
     }
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn ttl(&self) -> io::Result<u32> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IP, c::IP_TTL)?;
         Ok(raw as u32)
     }
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn set_only_v6(&self, only_v6: bool) -> io::Result<()> {
         setsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY, only_v6 as c_int)
     }
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn only_v6(&self) -> io::Result<bool> {
         let raw: c_int = getsockopt(&self.inner, c::IPPROTO_IPV6, c::IPV6_V6ONLY)?;
         Ok(raw != 0)
@@ -429,19 +421,17 @@ impl TcpListener {
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 impl FromInner<Socket> for TcpListener {
     fn from_inner(socket: Socket) -> TcpListener {
         TcpListener { inner: socket }
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 impl fmt::Debug for TcpListener {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut res = f.debug_struct("TcpListener");
-
-        if let Ok(addr) = self.socket_addr() {
-            res.field("addr", &addr);
-        }
 
         let name = if cfg!(windows) {"socket"} else {"fd"};
         res.field(name, &self.inner.as_inner())
@@ -661,10 +651,6 @@ impl FromInner<Socket> for UdpSocket {
 impl fmt::Debug for UdpSocket {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut res = f.debug_struct("UdpSocket");
-
-        if let Ok(addr) = self.socket_addr() {
-            res.field("addr", &addr);
-        }
 
         let name = if cfg!(windows) {"socket"} else {"fd"};
         res.field(name, &self.inner.as_inner())

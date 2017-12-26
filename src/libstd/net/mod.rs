@@ -47,7 +47,10 @@ pub use self::ip::{IpAddr, Ipv4Addr, Ipv6Addr, Ipv6MulticastScope};
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use self::addr::{SocketAddr, SocketAddrV4, SocketAddrV6, ToSocketAddrs};
 #[stable(feature = "rust1", since = "1.0.0")]
-pub use self::tcp::{TcpStream, TcpListener, Incoming};
+pub use self::tcp::TcpStream;
+#[cfg(not(target_os = "cloudabi"))]
+#[stable(feature = "rust1", since = "1.0.0")]
+pub use self::tcp::{TcpListener, Incoming};
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use self::udp::UdpSocket;
 #[stable(feature = "rust1", since = "1.0.0")]
