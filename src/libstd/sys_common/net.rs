@@ -313,6 +313,7 @@ impl TcpStream {
         Ok(raw as u32)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
         self.inner.take_error()
     }
@@ -469,10 +470,12 @@ impl UdpSocket {
         })
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.inner.recv_from(buf)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn peek_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.inner.peek_from(buf)
     }
@@ -608,6 +611,7 @@ impl UdpSocket {
         Ok(raw as u32)
     }
 
+    #[cfg(not(target_os = "cloudabi"))]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
         self.inner.take_error()
     }

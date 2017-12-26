@@ -508,6 +508,7 @@ impl TcpStream {
     ///                        .expect("Couldn't connect to the server...");
     /// stream.take_error().expect("No error was expected...");
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
         self.0.take_error()

@@ -12,6 +12,7 @@ use fmt;
 use io;
 #[cfg(not(target_os = "cloudabi"))]
 use io::{Error, ErrorKind};
+#[cfg(not(target_os = "cloudabi"))]
 use net::SocketAddr;
 #[cfg(not(target_os = "cloudabi"))]
 use net::{Ipv4Addr, Ipv6Addr};
@@ -130,6 +131,7 @@ impl UdpSocket {
     ///                                         .expect("Didn't receive data");
     /// let filled_buf = &mut buf[..number_of_bytes];
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.0.recv_from(buf)
@@ -159,6 +161,7 @@ impl UdpSocket {
     ///                                         .expect("Didn't receive data");
     /// let filled_buf = &mut buf[..number_of_bytes];
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "peek", since = "1.18.0")]
     pub fn peek_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.0.peek_from(buf)
@@ -616,6 +619,7 @@ impl UdpSocket {
     ///     Err(error) => println!("UdpSocket.take_error failed: {:?}", error),
     /// }
     /// ```
+    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "net2_mutators", since = "1.9.0")]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
         self.0.take_error()

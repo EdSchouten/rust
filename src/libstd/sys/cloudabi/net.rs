@@ -1,6 +1,9 @@
+extern crate cloudabi;
+
 use ffi::CStr;
 use io;
 use libc::{self, c_int, size_t, EAI_SYSTEM};
+use net::Shutdown;
 use str;
 use sys::fd::FileDesc;
 use sys_common::{AsInner, FromInner, IntoInner};
@@ -41,6 +44,40 @@ pub fn cvt_gai(err: c_int) -> io::Result<()> {
     Err(io::Error::new(io::ErrorKind::Other,
                        &format!("failed to lookup address information: {}",
                                 detail)[..]))
+}
+
+impl Socket {
+    pub fn new_pair(fam: c_int, ty: c_int) -> io::Result<(Socket, Socket)> {
+        // TODO(ed): Implement!
+        Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
+    }
+
+    pub fn duplicate(&self) -> io::Result<Socket> {
+        self.0.duplicate().map(Socket)
+    }
+
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.read(buf)
+    }
+
+    pub fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
+        // TODO(ed): Implement!
+        Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
+    }
+
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
+    }
+
+    pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
+        // TODO(ed): Implement!
+        Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
+    }
+
+    pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
+        // TODO(ed): Implement!
+        Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
+    }
 }
 
 pub fn res_init_if_glibc_before_2_26() -> io::Result<()> {

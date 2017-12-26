@@ -56,7 +56,7 @@ impl FileType {
 impl File {
     pub fn file_attr(&self) -> io::Result<FileAttr> {
         let mut stat: cloudabi::filestat;
-        let ret = unsafe { cloudabi::file_stat_fget(self.0.raw(), &mut stat) };
+        let ret = unsafe { cloudabi::file_stat_fget(cloudabi::fd(self.0.raw() as u32), &mut stat) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -65,7 +65,7 @@ impl File {
     }
 
     pub fn fsync(&self) -> io::Result<()> {
-        let ret = unsafe { cloudabi::fd_sync(self.0.raw()) };
+        let ret = unsafe { cloudabi::fd_sync(cloudabi::fd(self.0.raw() as u32)) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -74,7 +74,7 @@ impl File {
     }
 
     pub fn datasync(&self) -> io::Result<()> {
-        let ret = unsafe { cloudabi::fd_datasync(self.0.raw()) };
+        let ret = unsafe { cloudabi::fd_datasync(cloudabi::fd(self.0.raw() as u32)) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -87,7 +87,7 @@ impl File {
             st_size: size,
             ..mem::zeroed()
         };
-        let ret = unsafe { cloudabi::file_stat_fput(self.0.raw(), &attr, cloudabi::fsflags::SIZE) };
+        let ret = unsafe { cloudabi::file_stat_fput(cloudabi::fd(self.0.raw() as u32), &attr, cloudabi::fsflags::SIZE) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
@@ -120,7 +120,7 @@ impl File {
             SeekFrom::Current(off) => (cloudabi::whence::CUR, off),
         };
         let mut newoffset: cloudabi::filesize = 0;
-        let ret = unsafe { cloudabi::fd_seek(self.0.raw(), offset, whence, &mut newoffset) };
+        let ret = unsafe { cloudabi::fd_seek(cloudabi::fd(self.0.raw() as u32), offset, whence, &mut newoffset) };
         if ret != cloudabi::errno::SUCCESS {
             Err(io::Error::from_raw_os_error(ret as i32))
         } else {
