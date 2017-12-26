@@ -1259,6 +1259,9 @@ impl Child {
     }
 }
 
+}
+}
+
 /// Terminates the current process with the specified exit code.
 ///
 /// This function will never return and will immediately terminate the current
@@ -1391,6 +1394,7 @@ pub fn abort() -> ! {
 /// ```
 ///
 ///
+#[cfg(all(test, not(target_os = "cloudabi")))]
 #[unstable(feature = "getpid", issue = "44971", reason = "recently added")]
 pub fn id() -> u32 {
     ::sys::os::getpid()
@@ -1826,7 +1830,4 @@ mod tests {
         }
         assert!(events > 0);
     }
-}
-
-}
 }

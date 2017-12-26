@@ -96,3 +96,7 @@ pub fn page_size() -> usize {
         libc::sysconf(libc::_SC_PAGESIZE) as usize
     }
 }
+
+pub fn exit(code: i32) -> ! {
+    unsafe { libc::exit(code as c_int) }
+}
