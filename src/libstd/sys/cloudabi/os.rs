@@ -18,9 +18,9 @@ pub fn errno() -> i32 {
 }
 
 /// Gets a detailed string description for the given error number.
-pub fn error_string(errno: i32) -> String {
+pub fn error_string(_: i32) -> String {
     // TODO(ed): Implement!
-    return "TODO";
+    return String::from("TODO");
 }
 
 pub struct Env {
@@ -81,7 +81,7 @@ pub fn env() -> Env {
 pub fn getenv(k: &OsStr) -> io::Result<Option<OsString>> {
     let k = CString::new(k.as_bytes())?;
     unsafe {
-        let s = libc::getenv(k.as_ptr()) as *const _;
+        let s = libc::getenv(k.as_ptr());
         let ret = if s.is_null() {
             None
         } else {

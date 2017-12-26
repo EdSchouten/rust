@@ -28,7 +28,7 @@ pub use panicking::{begin_panic, begin_panic_fmt, update_panic_count};
 
 #[cfg(not(test))]
 #[lang = "start"]
-fn lang_start(main: fn(), argc: isize, argv: *const *const u8) -> isize {
+fn lang_start(main: fn(), _: isize, _: *const *const u8) -> isize {
     use panic;
     use sys;
     use sys_common;

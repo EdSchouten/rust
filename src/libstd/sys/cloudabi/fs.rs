@@ -55,12 +55,14 @@ impl FileType {
 
 impl File {
     pub fn file_attr(&self) -> io::Result<FileAttr> {
-        let mut stat: cloudabi::filestat;
-        let ret = unsafe { cloudabi::file_stat_fget(cloudabi::fd(self.0.raw() as u32), &mut stat) };
-        if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret as i32))
-        } else {
-            Ok(FileAttr { stat: stat })
+        unsafe {
+            let mut stat: cloudabi::filestat = mem::uninitialized();
+            let ret = cloudabi::file_stat_fget(cloudabi::fd(self.0.raw() as u32), &mut stat);
+            if ret != cloudabi::errno::SUCCESS {
+                Err(io::Error::from_raw_os_error(ret as i32))
+            } else {
+                Ok(FileAttr { stat: stat })
+            }
         }
     }
 
@@ -83,15 +85,17 @@ impl File {
     }
 
     pub fn truncate(&self, size: u64) -> io::Result<()> {
-        let attr = cloudabi::filestat {
-            st_size: size,
-            ..mem::zeroed()
-        };
-        let ret = unsafe { cloudabi::file_stat_fput(cloudabi::fd(self.0.raw() as u32), &attr, cloudabi::fsflags::SIZE) };
-        if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret as i32))
-        } else {
-            Ok(())
+        unsafe {
+            let attr = cloudabi::filestat {
+                st_size: size,
+                ..mem::zeroed()
+            };
+            let ret = cloudabi::file_stat_fput(cloudabi::fd(self.0.raw() as u32), &attr, cloudabi::fsflags::SIZE);
+            if ret != cloudabi::errno::SUCCESS {
+                Err(io::Error::from_raw_os_error(ret as i32))
+            } else {
+                Ok(())
+            }
         }
     }
 

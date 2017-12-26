@@ -27,7 +27,7 @@ impl io::Write for Stderr {
     }
 }
 
-pub fn is_ebadf(err: &io::Error) -> bool {
+pub fn is_ebadf(_: &io::Error) -> bool {
     // TODO(ed): Implement!
     false
 }

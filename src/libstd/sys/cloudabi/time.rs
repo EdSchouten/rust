@@ -55,9 +55,10 @@ impl SystemTime {
         SystemTime { t: t }
     }
 
-    pub fn sub_time(&self, other: &SystemTime)
+    pub fn sub_time(&self, _: &SystemTime)
                     -> Result<Duration, Duration> {
         // TODO(ed): Implement!
+        Err(Duration::new(5, 0))
     }
 
     pub fn add_duration(&self, other: &Duration) -> SystemTime {

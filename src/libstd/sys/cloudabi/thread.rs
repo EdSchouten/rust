@@ -93,26 +93,23 @@ impl Thread {
         // CloudABI has no way to set a thread name.
     }
 
-    pub fn sleep(dur: Duration) {
-        let mut secs = dur.as_secs();
-        let mut nsecs = dur.subsec_nanos() as _;
-
-        // If we're awoken with a signal then the return value will be -1 and
-        // nanosleep will fill in `ts` with the remaining time.
+    pub fn sleep(_: Duration) {
+        // TODO(ed): Implement!
+        /*
         unsafe {
             let subscription = cloudabi::subscription {
                 type_: cloudabi::eventtype::CLOCK,
                 union: cloudabi::subscription_union {
                     clock: cloudabi::subscription_clock {
                         clock_id: cloudabi::clockid::REALTIME,
-                        timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos(),
+                        timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
                         ..mem::zeroed()
                     }
                 },
                 ..mem::zeroed()
             };
-            // TODO(ed): Implement!
         }
+        */
     }
 
     pub fn join(self) {

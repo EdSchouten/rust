@@ -1,6 +1,6 @@
 extern crate cloudabi;
 
-use mem;
+use cell::UnsafeCell;
 use sync::atomic::{AtomicU32, Ordering};
 use sys::mutex::{self, Mutex};
 use time::Duration;
@@ -11,38 +11,46 @@ extern {
 }
 
 pub struct Condvar {
-    condvar: AtomicU32,
+    condvar: UnsafeCell<AtomicU32>,
 }
+
+unsafe impl Send for Condvar {}
+unsafe impl Sync for Condvar {}
 
 impl Condvar {
     pub const fn new() -> Condvar {
-        Condvar { condvar: AtomicU32::new(cloudabi::CONDVAR_HAS_NO_WAITERS.0) }
+        Condvar { condvar: UnsafeCell::new(AtomicU32::new(cloudabi::CONDVAR_HAS_NO_WAITERS.0)) }
     }
 
     pub unsafe fn init(&mut self) {}
 
     pub unsafe fn notify_one(&self) {
-        if self.condvar.load(Ordering::Relaxed) != cloudabi::CONDVAR_HAS_NO_WAITERS.0 {
+        let condvar = self.condvar.get();
+        if (*condvar).load(Ordering::Relaxed) != cloudabi::CONDVAR_HAS_NO_WAITERS.0 {
             let ret = cloudabi::condvar_signal(
-                &mut self.condvar as *mut _ as *mut cloudabi::condvar,
+                condvar as *mut cloudabi::condvar,
                 cloudabi::scope::PRIVATE, 1);
             assert_eq!(ret, cloudabi::errno::SUCCESS);
         }
     }
 
     pub unsafe fn notify_all(&self) {
-        if self.condvar.load(Ordering::Relaxed) != cloudabi::CONDVAR_HAS_NO_WAITERS.0 {
+        let condvar = self.condvar.get();
+        if (*condvar).load(Ordering::Relaxed) != cloudabi::CONDVAR_HAS_NO_WAITERS.0 {
             let ret = cloudabi::condvar_signal(
-                &mut self.condvar as *mut _ as *mut cloudabi::condvar,
+                condvar as *mut cloudabi::condvar,
                 cloudabi::scope::PRIVATE, u32::max_value());
             assert_eq!(ret, cloudabi::errno::SUCCESS);
         }
     }
 
     pub unsafe fn wait(&self, mutex: &Mutex) {
-        assert_eq!(mutex::raw(mutex).load(Ordering::Relaxed) & cloudabi::LOCK_KERNEL_MANAGED.0,
+        let mutex = mutex::raw(mutex);
+        assert_eq!((*mutex).load(Ordering::Relaxed) & cloudabi::LOCK_KERNEL_MANAGED.0,
                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0);
 
+        // TODO(ed): Implement!
+        /*
         let subscription = cloudabi::subscription {
             type_: cloudabi::eventtype::CONDVAR,
             union: cloudabi::subscription_union {
@@ -55,16 +63,17 @@ impl Condvar {
             },
             ..mem::zeroed()
         };
-        // TODO(ed): Implement!
+        */
     }
 
-    pub unsafe fn wait_timeout(&self, mutex: &Mutex, dur: Duration) -> bool {
+    pub unsafe fn wait_timeout(&self, _: &Mutex, _: Duration) -> bool {
         // TODO(ed): Implement!
         false
     }
 
     pub unsafe fn destroy(&self) {
-        assert_eq!(self.condvar.load(Ordering::Relaxed),
+        let condvar = self.condvar.get();
+        assert_eq!((*condvar).load(Ordering::Relaxed),
                    cloudabi::CONDVAR_HAS_NO_WAITERS.0);
     }
 }

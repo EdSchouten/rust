@@ -75,6 +75,7 @@ pub fn setsockopt<T>(sock: &Socket, opt: c_int, val: c_int,
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 pub fn getsockopt<T: Copy>(sock: &Socket, opt: c_int,
                        val: c_int) -> io::Result<T> {
     unsafe {
@@ -88,6 +89,7 @@ pub fn getsockopt<T: Copy>(sock: &Socket, opt: c_int,
     }
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 fn sockname<F>(f: F) -> io::Result<SocketAddr>
     where F: FnOnce(*mut c::sockaddr, *mut c::socklen_t) -> c_int
 {
@@ -125,7 +127,7 @@ fn to_ipv6mr_interface(value: u32) -> c_int {
     value as c_int
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "cloudabi")))]
 fn to_ipv6mr_interface(value: u32) -> ::libc::c_uint {
     value as ::libc::c_uint
 }

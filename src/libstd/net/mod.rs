@@ -39,7 +39,9 @@
 #![stable(feature = "rust1", since = "1.0.0")]
 
 use fmt;
-use io::{self, Error, ErrorKind};
+use io;
+#[cfg(not(target_os = "cloudabi"))]
+use io::{Error, ErrorKind};
 use sys_common::net as net_imp;
 
 #[stable(feature = "rust1", since = "1.0.0")]
@@ -116,6 +118,7 @@ doit! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 fn hton<I: NetInt>(i: I) -> I { i.to_be() }
 fn ntoh<I: NetInt>(i: I) -> I { I::from_be(i) }
 
+#[cfg(not(target_os = "cloudabi"))]
 fn each_addr<A: ToSocketAddrs, F, T>(addr: A, mut f: F) -> io::Result<T>
     where F: FnMut(&SocketAddr) -> io::Result<T>
 {

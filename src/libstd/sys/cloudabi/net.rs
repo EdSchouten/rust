@@ -47,7 +47,7 @@ pub fn cvt_gai(err: c_int) -> io::Result<()> {
 }
 
 impl Socket {
-    pub fn new_pair(fam: c_int, ty: c_int) -> io::Result<(Socket, Socket)> {
+    pub fn new_pair(_: c_int, _: c_int) -> io::Result<(Socket, Socket)> {
         // TODO(ed): Implement!
         Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
     }
@@ -60,7 +60,7 @@ impl Socket {
         self.0.read(buf)
     }
 
-    pub fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
+    pub fn peek(&self, _: &mut [u8]) -> io::Result<usize> {
         // TODO(ed): Implement!
         Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
     }
@@ -69,12 +69,12 @@ impl Socket {
         self.0.write(buf)
     }
 
-    pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
+    pub fn shutdown(&self, _: Shutdown) -> io::Result<()> {
         // TODO(ed): Implement!
         Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
     }
 
-    pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
+    pub fn set_nonblocking(&self, _: bool) -> io::Result<()> {
         // TODO(ed): Implement!
         Err(io::Error::new(io::ErrorKind::Other, "Unimplemented!"))
     }

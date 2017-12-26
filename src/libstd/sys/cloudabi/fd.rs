@@ -77,12 +77,14 @@ impl FileDesc {
     }
 
     pub fn duplicate(&self) -> io::Result<FileDesc> {
-        let mut fd: cloudabi::fd = mem::uninitialized();
-        let ret = unsafe { cloudabi::fd_dup(cloudabi::fd(self.fd as u32), &mut fd) };
-        if ret != cloudabi::errno::SUCCESS {
-            Err(io::Error::from_raw_os_error(ret as i32))
-        } else {
-            Ok(FileDesc::new(fd.0 as c_int))
+        unsafe {
+            let mut fd: cloudabi::fd = mem::uninitialized();
+            let ret = cloudabi::fd_dup(cloudabi::fd(self.fd as u32), &mut fd);
+            if ret != cloudabi::errno::SUCCESS {
+                Err(io::Error::from_raw_os_error(ret as i32))
+            } else {
+                Ok(FileDesc::new(fd.0 as c_int))
+            }
         }
     }
 }
