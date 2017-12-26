@@ -781,7 +781,7 @@ impl<'a, 'tcx> CrateMetadata {
         } else {
             ExternBodyNestedBodies {
                 nested_bodies: Rc::new(BTreeMap::new()),
-                fingerprint: Fingerprint::zero(),
+                fingerprint: Fingerprint::ZERO,
             }
         }
     }
@@ -1129,6 +1129,7 @@ impl<'a, 'tcx> CrateMetadata {
                                       lines,
                                       multibyte_chars,
                                       non_narrow_chars,
+                                      name_hash,
                                       .. } = filemap_to_import;
 
             let source_length = (end_pos - start_pos).to_usize();
@@ -1155,6 +1156,7 @@ impl<'a, 'tcx> CrateMetadata {
                                                                    name_was_remapped,
                                                                    self.cnum.as_u32(),
                                                                    src_hash,
+                                                                   name_hash,
                                                                    source_length,
                                                                    lines,
                                                                    multibyte_chars,

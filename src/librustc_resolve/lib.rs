@@ -53,7 +53,7 @@ use syntax::util::lev_distance::find_best_match_for_name;
 use syntax::visit::{self, FnKind, Visitor};
 use syntax::attr;
 use syntax::ast::{Arm, BindingMode, Block, Crate, Expr, ExprKind};
-use syntax::ast::{FnDecl, ForeignItem, ForeignItemKind, Generics};
+use syntax::ast::{FnDecl, ForeignItem, ForeignItemKind, GenericParam, Generics};
 use syntax::ast::{Item, ItemKind, ImplItem, ImplItemKind};
 use syntax::ast::{Local, Mutability, Pat, PatKind, Path};
 use syntax::ast::{QSelf, TraitItemKind, TraitRef, Ty, TyKind};
@@ -290,17 +290,17 @@ fn resolve_struct_error<'sess, 'a>(resolver: &'sess Resolver,
                              "`self` imports are only allowed within a { } list")
         }
         ResolutionError::SelfImportCanOnlyAppearOnceInTheList => {
-            struct_span_err!(resolver.session,
-                             span,
-                             E0430,
-                             "`self` import can only appear once in the list")
+            let mut err = struct_span_err!(resolver.session, span, E0430,
+                                           "`self` import can only appear once in an import list");
+            err.span_label(span, "can only appear once in an import list");
+            err
         }
         ResolutionError::SelfImportOnlyInImportListWithNonEmptyPrefix => {
-            struct_span_err!(resolver.session,
-                             span,
-                             E0431,
-                             "`self` import can only appear in an import list with a \
-                              non-empty prefix")
+            let mut err = struct_span_err!(resolver.session, span, E0431,
+                                           "`self` import can only appear in an import list with \
+                                            a non-empty prefix");
+            err.span_label(span, "can only appear in an import list with a non-empty prefix");
+            err
         }
         ResolutionError::UnresolvedImport(name) => {
             let (span, msg) = match name {
@@ -320,18 +320,17 @@ fn resolve_struct_error<'sess, 'a>(resolver: &'sess Resolver,
             err
         }
         ResolutionError::CannotCaptureDynamicEnvironmentInFnItem => {
-            struct_span_err!(resolver.session,
-                             span,
-                             E0434,
-                             "{}",
-                             "can't capture dynamic environment in a fn item; use the || { ... } \
-                              closure form instead")
+            let mut err = struct_span_err!(resolver.session,
+                                           span,
+                                           E0434,
+                                           "{}",
+                                           "can't capture dynamic environment in a fn item");
+            err.help("use the `|| { ... }` closure form instead");
+            err
         }
         ResolutionError::AttemptToUseNonConstantValueInConstant => {
-            let mut err = struct_span_err!(resolver.session,
-                             span,
-                             E0435,
-                             "attempt to use a non-constant value in a constant");
+            let mut err = struct_span_err!(resolver.session, span, E0435,
+                                           "attempt to use a non-constant value in a constant");
             err.span_label(span, "non-constant value");
             err
         }
@@ -351,8 +350,7 @@ fn resolve_struct_error<'sess, 'a>(resolver: &'sess Resolver,
             let mut err = struct_span_err!(resolver.session, span, E0128,
                                            "type parameters with a default cannot use \
                                             forward declared identifiers");
-            err.span_label(span, format!("defaulted type parameters \
-                                           cannot be forward declared"));
+            err.span_label(span, format!("defaulted type parameters cannot be forward declared"));
             err
         }
     }
@@ -790,25 +788,30 @@ impl<'a, 'tcx> Visitor<'tcx> for Resolver<'a> {
         // to following type parameters, as the Substs can only
         // provide previous type parameters as they're built.
         let mut default_ban_rib = Rib::new(ForwardTyParamBanRibKind);
-        default_ban_rib.bindings.extend(generics.ty_params.iter()
+        default_ban_rib.bindings.extend(generics.params.iter()
+            .filter_map(|p| if let GenericParam::Type(ref tp) = *p { Some(tp) } else { None })
             .skip_while(|p| p.default.is_none())
             .map(|p| (Ident::with_empty_ctxt(p.ident.name), Def::Err)));
 
-        for param in &generics.ty_params {
-            for bound in &param.bounds {
-                self.visit_ty_param_bound(bound);
-            }
+        for param in &generics.params {
+            match *param {
+                GenericParam::Lifetime(_) => self.visit_generic_param(param),
+                GenericParam::Type(ref ty_param) => {
+                    for bound in &ty_param.bounds {
+                        self.visit_ty_param_bound(bound);
+                    }
 
-            if let Some(ref ty) = param.default {
-                self.ribs[TypeNS].push(default_ban_rib);
-                self.visit_ty(ty);
-                default_ban_rib = self.ribs[TypeNS].pop().unwrap();
-            }
+                    if let Some(ref ty) = ty_param.default {
+                        self.ribs[TypeNS].push(default_ban_rib);
+                        self.visit_ty(ty);
+                        default_ban_rib = self.ribs[TypeNS].pop().unwrap();
+                    }
 
-            // Allow all following defaults to refer to this type parameter.
-            default_ban_rib.bindings.remove(&Ident::with_empty_ctxt(param.ident.name));
+                    // Allow all following defaults to refer to this type parameter.
+                    default_ban_rib.bindings.remove(&Ident::with_empty_ctxt(ty_param.ident.name));
+                }
+            }
         }
-        for lt in &generics.lifetimes { self.visit_lifetime_def(lt); }
         for p in &generics.where_clause.predicates { self.visit_where_predicate(p); }
     }
 }
@@ -2022,23 +2025,27 @@ impl<'a> Resolver<'a> {
             HasTypeParameters(generics, rib_kind) => {
                 let mut function_type_rib = Rib::new(rib_kind);
                 let mut seen_bindings = FxHashMap();
-                for type_parameter in &generics.ty_params {
-                    let ident = type_parameter.ident.modern();
-                    debug!("with_type_parameter_rib: {}", type_parameter.id);
+                for param in &generics.params {
+                    if let GenericParam::Type(ref type_parameter) = *param {
+                        let ident = type_parameter.ident.modern();
+                        debug!("with_type_parameter_rib: {}", type_parameter.id);
 
-                    if seen_bindings.contains_key(&ident) {
-                        let span = seen_bindings.get(&ident).unwrap();
-                        let err =
-                            ResolutionError::NameAlreadyUsedInTypeParameterList(ident.name, span);
-                        resolve_error(self, type_parameter.span, err);
+                        if seen_bindings.contains_key(&ident) {
+                            let span = seen_bindings.get(&ident).unwrap();
+                            let err = ResolutionError::NameAlreadyUsedInTypeParameterList(
+                                ident.name,
+                                span,
+                            );
+                            resolve_error(self, type_parameter.span, err);
+                        }
+                        seen_bindings.entry(ident).or_insert(type_parameter.span);
+
+                        // plain insert (no renaming)
+                        let def_id = self.definitions.local_def_id(type_parameter.id);
+                        let def = Def::TyParam(def_id);
+                        function_type_rib.bindings.insert(ident, def);
+                        self.record_def(type_parameter.id, PathResolution::new(def));
                     }
-                    seen_bindings.entry(ident).or_insert(type_parameter.span);
-
-                    // plain insert (no renaming)
-                    let def_id = self.definitions.local_def_id(type_parameter.id);
-                    let def = Def::TyParam(def_id);
-                    function_type_rib.bindings.insert(ident, def);
-                    self.record_def(type_parameter.id, PathResolution::new(def));
                 }
                 self.ribs[TypeNS].push(function_type_rib);
             }
@@ -3941,7 +3948,7 @@ impl<'a> Resolver<'a> {
 
                     feature_err(&self.session.parse_sess, feature,
                                 attr.span, GateIssue::Language, msg)
-                        .span_note(binding.span(), "procedural macro imported here")
+                        .span_label(binding.span(), "procedural macro imported here")
                         .emit();
                 }
             }

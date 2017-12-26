@@ -28,8 +28,10 @@ use rustc::ty::codec::{self as ty_codec, TyEncoder};
 use rustc::session::config::{self, CrateTypeProcMacro};
 use rustc::util::nodemap::{FxHashMap, NodeSet};
 
+use rustc_data_structures::stable_hasher::StableHasher;
 use rustc_serialize::{Encodable, Encoder, SpecializedEncoder, opaque};
 
+use std::hash::Hash;
 use std::io::prelude::*;
 use std::io::Cursor;
 use std::path::Path;
@@ -290,6 +292,11 @@ impl<'a, 'tcx> EncodeContext<'a, 'tcx> {
                         } else {
                             let mut adapted = (**filemap).clone();
                             adapted.name = Path::new(&working_dir).join(name).into();
+                            adapted.name_hash = {
+                                let mut hasher: StableHasher<u128> = StableHasher::new();
+                                adapted.name.hash(&mut hasher);
+                                hasher.finish()
+                            };
                             Rc::new(adapted)
                         }
                     },
@@ -1078,8 +1085,8 @@ impl<'a, 'b: 'a, 'tcx: 'b> IsolatedEncoder<'a, 'b, 'tcx> {
                 }
                 hir::ItemConst(..) => self.encode_optimized_mir(def_id),
                 hir::ItemFn(_, _, constness, _, ref generics, _) => {
-                    let tps_len = generics.ty_params.len();
-                    let needs_inline = tps_len > 0 || attr::requests_inline(&item.attrs);
+                    let has_tps = generics.ty_params().next().is_some();
+                    let needs_inline = has_tps || attr::requests_inline(&item.attrs);
                     let always_encode_mir = self.tcx.sess.opts.debugging_opts.always_encode_mir;
                     if needs_inline || constness == hir::Constness::Const || always_encode_mir {
                         self.encode_optimized_mir(def_id)
@@ -1480,7 +1487,7 @@ impl<'a, 'b, 'tcx> IndexBuilder<'a, 'b, 'tcx> {
     }
 
     fn encode_info_for_generics(&mut self, generics: &hir::Generics) {
-        for ty_param in &generics.ty_params {
+        for ty_param in generics.ty_params() {
             let def_id = self.tcx.hir.local_def_id(ty_param.id);
             let has_default = Untracked(ty_param.default.is_some());
             self.record(def_id, IsolatedEncoder::encode_info_for_ty_param, (def_id, has_default));

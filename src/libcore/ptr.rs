@@ -581,8 +581,7 @@ impl<T: ?Sized> *const T {
     /// * Both the starting and resulting pointer must be either in bounds or one
     ///   byte past the end of an allocated object.
     ///
-    /// * The computed offset, **in bytes**, cannot overflow or underflow an
-    ///   `isize`.
+    /// * The computed offset, **in bytes**, cannot overflow an `isize`.
     ///
     /// * The offset being in bounds cannot rely on "wrapping around" the address
     ///   space. That is, the infinite-precision sum, **in bytes** must fit in a usize.
@@ -714,8 +713,7 @@ impl<T: ?Sized> *const T {
     /// * Both the starting and resulting pointer must be either in bounds or one
     ///   byte past the end of an allocated object.
     ///
-    /// * The computed offset, **in bytes**, cannot overflow or underflow an
-    ///   `isize`.
+    /// * The computed offset, **in bytes**, cannot overflow an `isize`.
     ///
     /// * The offset being in bounds cannot rely on "wrapping around" the address
     ///   space. That is, the infinite-precision sum must fit in a `usize`.
@@ -1219,8 +1217,7 @@ impl<T: ?Sized> *mut T {
     /// * Both the starting and resulting pointer must be either in bounds or one
     ///   byte past the end of an allocated object.
     ///
-    /// * The computed offset, **in bytes**, cannot overflow or underflow an
-    ///   `isize`.
+    /// * The computed offset, **in bytes**, cannot overflow an `isize`.
     ///
     /// * The offset being in bounds cannot rely on "wrapping around" the address
     ///   space. That is, the infinite-precision sum, **in bytes** must fit in a usize.
@@ -1419,8 +1416,7 @@ impl<T: ?Sized> *mut T {
     /// * Both the starting and resulting pointer must be either in bounds or one
     ///   byte past the end of an allocated object.
     ///
-    /// * The computed offset, **in bytes**, cannot overflow or underflow an
-    ///   `isize`.
+    /// * The computed offset, **in bytes**, cannot overflow an `isize`.
     ///
     /// * The offset being in bounds cannot rely on "wrapping around" the address
     ///   space. That is, the infinite-precision sum must fit in a `usize`.
@@ -1833,7 +1829,7 @@ impl<T: ?Sized> *mut T {
     ///
     /// # #[allow(dead_code)]
     /// unsafe fn from_buf_raw<T: Copy>(ptr: *const T, elts: usize) -> Vec<T> {
-    ///     let mut dst = Vec::with_capacity(elts);
+    ///     let mut dst: Vec<T> = Vec::with_capacity(elts);
     ///     dst.set_len(elts);
     ///     dst.as_mut_ptr().copy_from(ptr, elts);
     ///     dst
@@ -1872,7 +1868,7 @@ impl<T: ?Sized> *mut T {
     ///
     /// # #[allow(dead_code)]
     /// unsafe fn from_buf_raw<T: Copy>(ptr: *const T, elts: usize) -> Vec<T> {
-    ///     let mut dst = Vec::with_capacity(elts);
+    ///     let mut dst: Vec<T> = Vec::with_capacity(elts);
     ///     dst.set_len(elts);
     ///     dst.as_mut_ptr().copy_from_nonoverlapping(ptr, elts);
     ///     dst

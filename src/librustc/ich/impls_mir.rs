@@ -28,7 +28,7 @@ impl_stable_hash_for!(struct mir::LocalDecl<'tcx> {
     name,
     source_info,
     internal,
-    lexical_scope,
+    syntactic_scope,
     is_user_variable
 });
 impl_stable_hash_for!(struct mir::UpvarDecl { debug_name, by_ref, mutability });
@@ -150,6 +150,7 @@ for mir::TerminatorKind<'gcx> {
                 targets.hash_stable(hcx, hasher);
             }
             mir::TerminatorKind::Resume |
+            mir::TerminatorKind::Abort |
             mir::TerminatorKind::Return |
             mir::TerminatorKind::GeneratorDrop |
             mir::TerminatorKind::Unreachable => {}

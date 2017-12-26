@@ -33,7 +33,6 @@ use rustc::middle::resolve_lifetime as rl;
 use rustc::middle::lang_items;
 use rustc::hir::def::{Def, CtorKind};
 use rustc::hir::def_id::{CrateNum, DefId, CRATE_DEF_INDEX, LOCAL_CRATE};
-use rustc::traits::Reveal;
 use rustc::ty::subst::Substs;
 use rustc::ty::{self, Ty, AdtKind};
 use rustc::middle::stability;
@@ -43,6 +42,7 @@ use rustc_typeck::hir_ty_to_ty;
 use rustc::hir;
 
 use rustc_const_math::ConstInt;
+use std::default::Default;
 use std::{mem, slice, vec};
 use std::iter::FromIterator;
 use std::rc::Rc;
@@ -856,7 +856,7 @@ impl TyParamBound {
                 did,
                 is_generic: false,
             },
-            lifetimes: vec![]
+            generic_params: Vec::new(),
         }, hir::TraitBoundModifier::Maybe)
     }
 
@@ -951,7 +951,7 @@ impl<'tcx> Clean<TyParamBound> for ty::TraitRef<'tcx> {
                         if let &ty::RegionKind::ReLateBound(..) = *reg {
                             debug!("  hit an ReLateBound {:?}", reg);
                             if let Some(lt) = reg.clean(cx) {
-                                late_bounds.push(lt);
+                                late_bounds.push(GenericParam::Lifetime(lt));
                             }
                         }
                     }
@@ -967,7 +967,7 @@ impl<'tcx> Clean<TyParamBound> for ty::TraitRef<'tcx> {
                     did: self.def_id,
                     is_generic: false,
                 },
-                lifetimes: late_bounds,
+                generic_params: late_bounds,
             },
             hir::TraitBoundModifier::None
         )
@@ -981,7 +981,7 @@ impl<'tcx> Clean<Option<Vec<TyParamBound>>> for Substs<'tcx> {
                      .map(RegionBound));
         v.extend(self.types().map(|t| TraitBound(PolyTrait {
             trait_: t.clean(cx),
-            lifetimes: vec![]
+            generic_params: Vec::new(),
         }, hir::TraitBoundModifier::None)));
         if !v.is_empty() {Some(v)} else {None}
     }
@@ -1186,19 +1186,31 @@ impl<'tcx> Clean<Type> for ty::ProjectionTy<'tcx> {
     }
 }
 
-// maybe use a Generic enum and use Vec<Generic>?
 #[derive(Clone, RustcEncodable, RustcDecodable, PartialEq, Debug)]
+pub enum GenericParam {
+    Lifetime(Lifetime),
+    Type(TyParam),
+}
+
+impl Clean<GenericParam> for hir::GenericParam {
+    fn clean(&self, cx: &DocContext) -> GenericParam {
+        match *self {
+            hir::GenericParam::Lifetime(ref l) => GenericParam::Lifetime(l.clean(cx)),
+            hir::GenericParam::Type(ref t) => GenericParam::Type(t.clean(cx)),
+        }
+    }
+}
+
+#[derive(Clone, RustcEncodable, RustcDecodable, PartialEq, Debug, Default)]
 pub struct Generics {
-    pub lifetimes: Vec<Lifetime>,
-    pub type_params: Vec<TyParam>,
+    pub params: Vec<GenericParam>,
     pub where_predicates: Vec<WherePredicate>,
 }
 
 impl Clean<Generics> for hir::Generics {
     fn clean(&self, cx: &DocContext) -> Generics {
         let mut g = Generics {
-            lifetimes: self.lifetimes.clean(cx),
-            type_params: self.ty_params.clean(cx),
+            params: self.params.clean(cx),
             where_predicates: self.where_clause.predicates.clean(cx)
         };
 
@@ -1209,10 +1221,12 @@ impl Clean<Generics> for hir::Generics {
             match *where_pred {
                 WherePredicate::BoundPredicate { ty: Generic(ref name), ref mut bounds } => {
                     if bounds.is_empty() {
-                        for type_params in &mut g.type_params {
-                            if &type_params.name == name {
-                                mem::swap(bounds, &mut type_params.bounds);
-                                break
+                        for param in &mut g.params {
+                            if let GenericParam::Type(ref mut type_param) = *param {
+                                if &type_param.name == name {
+                                    mem::swap(bounds, &mut type_param.bounds);
+                                    break
+                                }
                             }
                         }
                     }
@@ -1283,8 +1297,16 @@ impl<'a, 'tcx> Clean<Generics> for (&'a ty::Generics,
         // and instead see `where T: Foo + Bar + Sized + 'a`
 
         Generics {
-            type_params: simplify::ty_params(stripped_typarams),
-            lifetimes: gens.regions.clean(cx),
+            params: gens.regions
+                .clean(cx)
+                .into_iter()
+                .map(|lp| GenericParam::Lifetime(lp))
+                .chain(
+                    simplify::ty_params(stripped_typarams)
+                        .into_iter()
+                        .map(|tp| GenericParam::Type(tp))
+                )
+                .collect(),
             where_predicates: simplify::where_clauses(cx, where_predicates),
         }
     }
@@ -1538,7 +1560,7 @@ impl Clean<PolyTrait> for hir::PolyTraitRef {
     fn clean(&self, cx: &DocContext) -> PolyTrait {
         PolyTrait {
             trait_: self.trait_ref.clean(cx),
-            lifetimes: self.bound_lifetimes.clean(cx)
+            generic_params: self.bound_generic_params.clean(cx)
         }
     }
 }
@@ -1590,11 +1612,7 @@ impl Clean<Item> for hir::ImplItem {
             }
             hir::ImplItemKind::Type(ref ty) => TypedefItem(Typedef {
                 type_: ty.clean(cx),
-                generics: Generics {
-                    lifetimes: Vec::new(),
-                    type_params: Vec::new(),
-                    where_predicates: Vec::new()
-                },
+                generics: Generics::default(),
             }, true),
         };
         Item {
@@ -1726,8 +1744,7 @@ impl<'tcx> Clean<Item> for ty::AssociatedItem {
                     TypedefItem(Typedef {
                         type_: cx.tcx.type_of(self.def_id).clean(cx),
                         generics: Generics {
-                            lifetimes: Vec::new(),
-                            type_params: Vec::new(),
+                            params: Vec::new(),
                             where_predicates: Vec::new(),
                         },
                     }, true)
@@ -1757,7 +1774,7 @@ impl<'tcx> Clean<Item> for ty::AssociatedItem {
 #[derive(Clone, RustcEncodable, RustcDecodable, PartialEq, Debug)]
 pub struct PolyTrait {
     pub trait_: Type,
-    pub lifetimes: Vec<Lifetime>
+    pub generic_params: Vec<GenericParam>,
 }
 
 /// A representation of a Type suitable for hyperlinking purposes. Ideally one can get the original
@@ -2044,7 +2061,7 @@ impl Clean<Type> for hir::Ty {
             TySlice(ref ty) => Slice(box ty.clean(cx)),
             TyArray(ref ty, n) => {
                 let def_id = cx.tcx.hir.body_owner_def_id(n);
-                let param_env = ty::ParamEnv::empty(Reveal::UserFacing);
+                let param_env = cx.tcx.param_env(def_id);
                 let substs = Substs::identity_for_item(cx.tcx, def_id);
                 let n = cx.tcx.const_eval(param_env.and((def_id, substs))).unwrap();
                 let n = if let ConstVal::Integral(ConstInt::Usize(n)) = n.val {
@@ -2081,7 +2098,7 @@ impl Clean<Type> for hir::Ty {
                     let mut ty_substs = FxHashMap();
                     let mut lt_substs = FxHashMap();
                     provided_params.with_parameters(|provided_params| {
-                        for (i, ty_param) in generics.ty_params.iter().enumerate() {
+                        for (i, ty_param) in generics.ty_params().enumerate() {
                             let ty_param_def = Def::TyParam(cx.tcx.hir.local_def_id(ty_param.id));
                             if let Some(ty) = provided_params.types.get(i).cloned() {
                                 ty_substs.insert(ty_param_def, ty.into_inner().clean(cx));
@@ -2089,7 +2106,8 @@ impl Clean<Type> for hir::Ty {
                                 ty_substs.insert(ty_param_def, default.into_inner().clean(cx));
                             }
                         }
-                        for (i, lt_param) in generics.lifetimes.iter().enumerate() {
+
+                        for (i, lt_param) in generics.lifetimes().enumerate() {
                             if let Some(lt) = provided_params.lifetimes.get(i).cloned() {
                                 if !lt.is_elided() {
                                     let lt_def_id = cx.tcx.hir.local_def_id(lt_param.lifetime.id);
@@ -2154,7 +2172,6 @@ impl Clean<Type> for hir::Ty {
             }
             TyBareFn(ref barefn) => BareFunction(box barefn.clean(cx)),
             TyImplTraitExistential(ref exist_ty, ref _lts) => ImplTrait(exist_ty.bounds.clean(cx)),
-            TyImplTraitUniversal(_, ref bounds) => ImplTrait(bounds.clean(cx)),
             TyInfer | TyErr => Infer,
             TyTypeof(..) => panic!("Unimplemented type {:?}", self.node),
         }
@@ -2173,6 +2190,11 @@ impl<'tcx> Clean<Type> for Ty<'tcx> {
             ty::TyStr => Primitive(PrimitiveType::Str),
             ty::TySlice(ty) => Slice(box ty.clean(cx)),
             ty::TyArray(ty, n) => {
+                let mut n = cx.tcx.lift(&n).unwrap();
+                if let ConstVal::Unevaluated(def_id, substs) = n.val {
+                    let param_env = cx.tcx.param_env(def_id);
+                    n = cx.tcx.const_eval(param_env.and((def_id, substs))).unwrap()
+                };
                 let n = if let ConstVal::Integral(ConstInt::Usize(n)) = n.val {
                     n.to_string()
                 } else if let ConstVal::Unevaluated(def_id, _) = n.val {
@@ -2198,11 +2220,7 @@ impl<'tcx> Clean<Type> for Ty<'tcx> {
                 let sig = ty.fn_sig(cx.tcx);
                 BareFunction(box BareFunctionDecl {
                     unsafety: sig.unsafety(),
-                    generics: Generics {
-                        lifetimes: Vec::new(),
-                        type_params: Vec::new(),
-                        where_predicates: Vec::new()
-                    },
+                    generic_params: Vec::new(),
                     decl: (cx.tcx.hir.local_def_id(ast::CRATE_NODE_ID), sig).clean(cx),
                     abi: sig.abi(),
                 })
@@ -2254,7 +2272,7 @@ impl<'tcx> Clean<Type> for Ty<'tcx> {
                                 did,
                                 is_generic: false,
                             },
-                            lifetimes: vec![]
+                            generic_params: Vec::new(),
                         }, hir::TraitBoundModifier::None);
                         typarams.push(bound);
                     }
@@ -2714,7 +2732,7 @@ impl Clean<Item> for doctree::Typedef {
 #[derive(Clone, RustcEncodable, RustcDecodable, PartialEq, Debug)]
 pub struct BareFunctionDecl {
     pub unsafety: hir::Unsafety,
-    pub generics: Generics,
+    pub generic_params: Vec<GenericParam>,
     pub decl: FnDecl,
     pub abi: Abi,
 }
@@ -2723,11 +2741,7 @@ impl Clean<BareFunctionDecl> for hir::BareFnTy {
     fn clean(&self, cx: &DocContext) -> BareFunctionDecl {
         BareFunctionDecl {
             unsafety: self.unsafety,
-            generics: Generics {
-                lifetimes: self.lifetimes.clean(cx),
-                type_params: Vec::new(),
-                where_predicates: Vec::new()
-            },
+            generic_params: self.generic_params.clean(cx),
             decl: (&*self.decl, &self.arg_names[..]).clean(cx),
             abi: self.abi,
         }

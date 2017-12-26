@@ -102,11 +102,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for WhileTrue {
                 if let ast::LitKind::Bool(true) = lit.node {
                     if lit.span.ctxt() == SyntaxContext::empty() {
                         let msg = "denote infinite loops with `loop { ... }`";
-                        let mut err = cx.struct_span_lint(WHILE_TRUE, e.span, msg);
                         let condition_span = cx.tcx.sess.codemap().def_span(e.span);
-                        err.span_suggestion_short(condition_span,
-                                                  "use `loop`",
-                                                  "loop".to_owned());
+                        let mut err = cx.struct_span_lint(WHILE_TRUE, condition_span, msg);
+                        err.span_suggestion_short(condition_span, "use `loop`", "loop".to_owned());
                         err.emit();
                     }
                 }
@@ -349,7 +347,27 @@ impl MissingDoc {
             }
         }
 
-        let has_doc = attrs.iter().any(|a| a.is_value_str() && a.check_name("doc"));
+        fn has_doc(attr: &ast::Attribute) -> bool {
+            if !attr.check_name("doc") {
+                return false;
+            }
+
+            if attr.is_value_str() {
+                return true;
+            }
+
+            if let Some(list) = attr.meta_item_list() {
+                for meta in list {
+                    if meta.check_name("include") {
+                        return true;
+                    }
+                }
+            }
+
+            false
+        }
+
+        let has_doc = attrs.iter().any(|a| has_doc(a));
         if !has_doc {
             cx.span_lint(MISSING_DOCS,
                          cx.tcx.sess.codemap().def_span(sp),
@@ -507,21 +525,21 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for MissingCopyImplementations {
         }
         let (def, ty) = match item.node {
             hir::ItemStruct(_, ref ast_generics) => {
-                if ast_generics.is_parameterized() {
+                if !ast_generics.params.is_empty() {
                     return;
                 }
                 let def = cx.tcx.adt_def(cx.tcx.hir.local_def_id(item.id));
                 (def, cx.tcx.mk_adt(def, cx.tcx.intern_substs(&[])))
             }
             hir::ItemUnion(_, ref ast_generics) => {
-                if ast_generics.is_parameterized() {
+                if !ast_generics.params.is_empty() {
                     return;
                 }
                 let def = cx.tcx.adt_def(cx.tcx.hir.local_def_id(item.id));
                 (def, cx.tcx.mk_adt(def, cx.tcx.intern_substs(&[])))
             }
             hir::ItemEnum(_, ref ast_generics) => {
-                if ast_generics.is_parameterized() {
+                if !ast_generics.params.is_empty() {
                     return;
                 }
                 let def = cx.tcx.adt_def(cx.tcx.hir.local_def_id(item.id));

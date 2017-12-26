@@ -1352,17 +1352,6 @@ impl<'a, 'tcx> LayoutDetails {
                     }).collect::<Result<Vec<_>, _>>()
                 }).collect::<Result<Vec<_>, _>>()?;
 
-                let (inh_first, inh_second) = {
-                    let mut inh_variants = (0..variants.len()).filter(|&v| {
-                        variants[v].iter().all(|f| f.abi != Abi::Uninhabited)
-                    });
-                    (inh_variants.next(), inh_variants.next())
-                };
-                if inh_first.is_none() {
-                    // Uninhabited because it has no variants, or only uninhabited ones.
-                    return Ok(tcx.intern_layout(LayoutDetails::uninhabited(0)));
-                }
-
                 if def.is_union() {
                     let packed = def.repr.packed();
                     if packed && def.repr.align > 0 {
@@ -1398,6 +1387,17 @@ impl<'a, 'tcx> LayoutDetails {
                         align,
                         size: size.abi_align(align)
                     }));
+                }
+
+                let (inh_first, inh_second) = {
+                    let mut inh_variants = (0..variants.len()).filter(|&v| {
+                        variants[v].iter().all(|f| f.abi != Abi::Uninhabited)
+                    });
+                    (inh_variants.next(), inh_variants.next())
+                };
+                if inh_first.is_none() {
+                    // Uninhabited because it has no variants, or only uninhabited ones.
+                    return Ok(tcx.intern_layout(LayoutDetails::uninhabited(0)));
                 }
 
                 let is_struct = !def.is_enum() ||
@@ -1484,27 +1484,25 @@ impl<'a, 'tcx> LayoutDetails {
                                     Some(niche) => niche,
                                     None => continue
                                 };
+                            let mut align = dl.aggregate_align;
                             let st = variants.iter().enumerate().map(|(j, v)| {
                                 let mut st = univariant_uninterned(v,
                                     &def.repr, StructKind::AlwaysSized)?;
                                 st.variants = Variants::Single { index: j };
+
+                                align = align.max(st.align);
+
                                 Ok(st)
                             }).collect::<Result<Vec<_>, _>>()?;
 
                             let offset = st[i].fields.offset(field_index) + offset;
-                            let LayoutDetails { mut size, mut align, .. } = st[i];
+                            let size = st[i].size;
 
-                            let mut niche_align = niche.value.align(dl);
                             let abi = if offset.bytes() == 0 && niche.value.size(dl) == size {
                                 Abi::Scalar(niche.clone())
                             } else {
-                                if offset.abi_align(niche_align) != offset {
-                                    niche_align = dl.i8_align;
-                                }
                                 Abi::Aggregate { sized: true }
                             };
-                            align = align.max(niche_align);
-                            size = size.abi_align(align);
 
                             return Ok(tcx.intern_layout(LayoutDetails {
                                 variants: Variants::NicheFilling {

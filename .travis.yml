@@ -1,7 +1,6 @@
 language: shell
 sudo: required
 dist: trusty
-group: deprecated-2017Q4
 services:
   - docker
 
@@ -180,6 +179,17 @@ matrix:
     - env: IMAGE=x86_64-gnu-incremental
       if: branch = auto
 
+    - stage: publish toolstate
+      if: branch = master AND type = push
+      before_install: []
+      install: []
+      cache: false
+      sudo: false
+      script:
+        MESSAGE_FILE=$(mktemp -t msg.XXXXXX);
+        . src/ci/docker/x86_64-gnu-tools/repo.sh;
+        commit_toolstate_change "$MESSAGE_FILE" "$TRAVIS_BUILD_DIR/src/tools/publish_toolstate.py" "$(git rev-parse HEAD)" "$(git log --format=%s -n1 HEAD)" "$MESSAGE_FILE"
+
 env:
   global:
     - SCCACHE_BUCKET=rust-lang-ci-sccache2
@@ -187,10 +197,19 @@ env:
     - AWS_ACCESS_KEY_ID=AKIAJAMV3QAMMA6AXHFQ
     # AWS_SECRET_ACCESS_KEY=...
     - secure: "j96XxTVOSUf4s4r4htIxn/fvIa5DWbMgLqWl7r8z2QfgUwscmkMXAwXuFNc7s7bGTpV/+CgDiMFFM6BAFLGKutytIF6oA02s9b+usQYnM0th7YQ2AIgm9GtMTJCJp4AoyfFmh8F2faUICBZlfVLUJ34udHEe35vOklix+0k4WDo="
+    # TOOLSTATE_REPO_ACCESS_TOKEN=...
+    - secure: "cFh8thThqEJLC98XKI5pfqflUzOlxsYPRW20AWRaYOOgYHPTiGWypTXiPbGSKaeAXTZoOA+DpQtEmefc0U6lt9dHc7a/MIaK6isFurjlnKYiLOeTruzyu1z7PWCeZ/jKXsU2RK/88DBtlNwfMdaMIeuKj14IVfpepPPL71ETbuk="
 
 before_install:
   - zcat $HOME/docker/rust-ci.tar.gz | docker load || true
   - mkdir -p $HOME/rustsrc
+  # FIXME(#46924): these two commands are required to enable IPv6,
+  # they shouldn't exist, please revert once more official solutions appeared.
+  # see https://github.com/travis-ci/travis-ci/issues/8891#issuecomment-353403729
+  - if [ "$TRAVIS_OS_NAME" = linux ]; then
+      echo '{"ipv6":true,"fixed-cidr-v6":"fd9a:8454:6789:13f7::/64"}' | sudo tee /etc/docker/daemon.json;
+      sudo service docker restart;
+    fi
 
 install:
   - case "$TRAVIS_OS_NAME" in

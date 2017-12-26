@@ -20,7 +20,6 @@ use syntax_pos::{Span, DUMMY_SP};
 use codemap::{respan, Spanned};
 use abi::Abi;
 use ext::hygiene::{Mark, SyntaxContext};
-use parse::parser::{RecoverQPath, PathStyle};
 use print::pprust;
 use ptr::P;
 use rustc_data_structures::indexed_vec;
@@ -302,30 +301,56 @@ pub struct TyParam {
     pub span: Span,
 }
 
-/// Represents lifetimes and type parameters attached to a declaration
-/// of a function, enum, trait, etc.
+#[derive(Clone, PartialEq, Eq, RustcEncodable, RustcDecodable, Hash, Debug)]
+pub enum GenericParam {
+    Lifetime(LifetimeDef),
+    Type(TyParam),
+}
+
+impl GenericParam {
+    pub fn is_lifetime_param(&self) -> bool {
+        match *self {
+            GenericParam::Lifetime(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_type_param(&self) -> bool {
+        match *self {
+            GenericParam::Type(_) => true,
+            _ => false,
+        }
+    }
+}
+
+/// Represents lifetime, type and const parameters attached to a declaration of
+/// a function, enum, trait, etc.
 #[derive(Clone, PartialEq, Eq, RustcEncodable, RustcDecodable, Hash, Debug)]
 pub struct Generics {
-    pub lifetimes: Vec<LifetimeDef>,
-    pub ty_params: Vec<TyParam>,
+    pub params: Vec<GenericParam>,
     pub where_clause: WhereClause,
     pub span: Span,
 }
 
 impl Generics {
     pub fn is_lt_parameterized(&self) -> bool {
-        !self.lifetimes.is_empty()
+        self.params.iter().any(|param| param.is_lifetime_param())
     }
+
     pub fn is_type_parameterized(&self) -> bool {
-        !self.ty_params.is_empty()
+        self.params.iter().any(|param| param.is_type_param())
     }
+
     pub fn is_parameterized(&self) -> bool {
-        self.is_lt_parameterized() || self.is_type_parameterized()
+        !self.params.is_empty()
     }
+
     pub fn span_for_name(&self, name: &str) -> Option<Span> {
-        for t in &self.ty_params {
-            if t.ident.name == name {
-                return Some(t.span);
+        for param in &self.params {
+            if let GenericParam::Type(ref t) = *param {
+                if t.ident.name == name {
+                    return Some(t.span);
+                }
             }
         }
         None
@@ -336,8 +361,7 @@ impl Default for Generics {
     /// Creates an instance of `Generics`.
     fn default() ->  Generics {
         Generics {
-            lifetimes: Vec::new(),
-            ty_params: Vec::new(),
+            params: Vec::new(),
             where_clause: WhereClause {
                 id: DUMMY_NODE_ID,
                 predicates: Vec::new(),
@@ -373,8 +397,8 @@ pub enum WherePredicate {
 #[derive(Clone, PartialEq, Eq, RustcEncodable, RustcDecodable, Hash, Debug)]
 pub struct WhereBoundPredicate {
     pub span: Span,
-    /// Any lifetimes from a `for` binding
-    pub bound_lifetimes: Vec<LifetimeDef>,
+    /// Any generics from a `for` binding
+    pub bound_generic_params: Vec<GenericParam>,
     /// The type being bounded
     pub bounded_ty: P<Ty>,
     /// Trait and lifetime bounds (`Clone+Send+'static`)
@@ -469,6 +493,7 @@ pub struct Block {
     /// Distinguishes between `unsafe { ... }` and `{ ... }`
     pub rules: BlockCheckMode,
     pub span: Span,
+    pub recovered: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, RustcEncodable, RustcDecodable, Hash)]
@@ -485,6 +510,30 @@ impl fmt::Debug for Pat {
 }
 
 impl Pat {
+    pub(super) fn to_ty(&self) -> Option<P<Ty>> {
+        let node = match &self.node {
+            PatKind::Wild => TyKind::Infer,
+            PatKind::Ident(BindingMode::ByValue(Mutability::Immutable), ident, None) =>
+                TyKind::Path(None, Path::from_ident(ident.span, ident.node)),
+            PatKind::Path(qself, path) => TyKind::Path(qself.clone(), path.clone()),
+            PatKind::Mac(mac) => TyKind::Mac(mac.clone()),
+            PatKind::Ref(pat, mutbl) =>
+                pat.to_ty().map(|ty| TyKind::Rptr(None, MutTy { ty, mutbl: *mutbl }))?,
+            PatKind::Slice(pats, None, _) if pats.len() == 1 =>
+                pats[0].to_ty().map(TyKind::Slice)?,
+            PatKind::Tuple(pats, None) => {
+                let mut tys = Vec::new();
+                for pat in pats {
+                    tys.push(pat.to_ty()?);
+                }
+                TyKind::Tup(tys)
+            }
+            _ => return None,
+        };
+
+        Some(P(Ty { node, id: self.id, span: self.span }))
+    }
+
     pub fn walk<F>(&self, it: &mut F) -> bool
         where F: FnMut(&Pat) -> bool
     {
@@ -517,38 +566,6 @@ impl Pat {
                 true
             }
         }
-    }
-}
-
-impl RecoverQPath for Pat {
-    fn to_ty(&self) -> Option<P<Ty>> {
-        let node = match &self.node {
-            PatKind::Wild => TyKind::Infer,
-            PatKind::Ident(BindingMode::ByValue(Mutability::Immutable), ident, None) =>
-                TyKind::Path(None, Path::from_ident(ident.span, ident.node)),
-            PatKind::Path(qself, path) => TyKind::Path(qself.clone(), path.clone()),
-            PatKind::Mac(mac) => TyKind::Mac(mac.clone()),
-            PatKind::Ref(pat, mutbl) =>
-                pat.to_ty().map(|ty| TyKind::Rptr(None, MutTy { ty, mutbl: *mutbl }))?,
-            PatKind::Slice(pats, None, _) if pats.len() == 1 =>
-                pats[0].to_ty().map(TyKind::Slice)?,
-            PatKind::Tuple(pats, None) => {
-                let mut tys = Vec::new();
-                for pat in pats {
-                    tys.push(pat.to_ty()?);
-                }
-                TyKind::Tup(tys)
-            }
-            _ => return None,
-        };
-
-        Some(P(Ty { node, id: self.id, span: self.span }))
-    }
-    fn to_recovered(&self, qself: Option<QSelf>, path: Path) -> Self {
-        Self { span: path.span, node: PatKind::Path(qself, path), id: self.id }
-    }
-    fn to_string(&self) -> String {
-        pprust::pat_to_string(self)
     }
 }
 
@@ -919,10 +936,8 @@ impl Expr {
             _ => None,
         }
     }
-}
 
-impl RecoverQPath for Expr {
-    fn to_ty(&self) -> Option<P<Ty>> {
+    pub(super) fn to_ty(&self) -> Option<P<Ty>> {
         let node = match &self.node {
             ExprKind::Path(qself, path) => TyKind::Path(qself.clone(), path.clone()),
             ExprKind::Mac(mac) => TyKind::Mac(mac.clone()),
@@ -950,13 +965,6 @@ impl RecoverQPath for Expr {
         };
 
         Some(P(Ty { node, id: self.id, span: self.span }))
-    }
-    fn to_recovered(&self, qself: Option<QSelf>, path: Path) -> Self {
-        Self { span: path.span, node: ExprKind::Path(qself, path),
-               id: self.id, attrs: self.attrs.clone() }
-    }
-    fn to_string(&self) -> String {
-        pprust::expr_to_string(self)
     }
 }
 
@@ -1469,19 +1477,6 @@ pub struct Ty {
     pub span: Span,
 }
 
-impl RecoverQPath for Ty {
-    fn to_ty(&self) -> Option<P<Ty>> {
-        Some(P(self.clone()))
-    }
-    fn to_recovered(&self, qself: Option<QSelf>, path: Path) -> Self {
-        Self { span: path.span, node: TyKind::Path(qself, path), id: self.id }
-    }
-    fn to_string(&self) -> String {
-        pprust::ty_to_string(self)
-    }
-    const PATH_STYLE: PathStyle = PathStyle::Type;
-}
-
 impl fmt::Debug for Ty {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "type({})", pprust::ty_to_string(self))
@@ -1492,7 +1487,7 @@ impl fmt::Debug for Ty {
 pub struct BareFnTy {
     pub unsafety: Unsafety,
     pub abi: Abi,
-    pub lifetimes: Vec<LifetimeDef>,
+    pub generic_params: Vec<GenericParam>,
     pub decl: P<FnDecl>
 }
 
@@ -1851,7 +1846,7 @@ pub struct TraitRef {
 #[derive(Clone, PartialEq, Eq, RustcEncodable, RustcDecodable, Hash, Debug)]
 pub struct PolyTraitRef {
     /// The `'a` in `<'a> Foo<&'a T>`
-    pub bound_lifetimes: Vec<LifetimeDef>,
+    pub bound_generic_params: Vec<GenericParam>,
 
     /// The `Foo<&'a T>` in `<'a> Foo<&'a T>`
     pub trait_ref: TraitRef,
@@ -1860,9 +1855,9 @@ pub struct PolyTraitRef {
 }
 
 impl PolyTraitRef {
-    pub fn new(lifetimes: Vec<LifetimeDef>, path: Path, span: Span) -> Self {
+    pub fn new(generic_params: Vec<GenericParam>, path: Path, span: Span) -> Self {
         PolyTraitRef {
-            bound_lifetimes: lifetimes,
+            bound_generic_params: generic_params,
             trait_ref: TraitRef { path: path, ref_id: DUMMY_NODE_ID },
             span,
         }

@@ -625,6 +625,7 @@ impl<'a, 'tcx> MirVisitor<'tcx> for MirNeighborCollector<'a, 'tcx> {
             mir::TerminatorKind::Goto { .. } |
             mir::TerminatorKind::SwitchInt { .. } |
             mir::TerminatorKind::Resume |
+            mir::TerminatorKind::Abort |
             mir::TerminatorKind::Return |
             mir::TerminatorKind::Unreachable |
             mir::TerminatorKind::Assert { .. } => {}
@@ -922,7 +923,7 @@ impl<'b, 'a, 'v> ItemLikeVisitor<'v> for RootCollector<'b, 'a, 'v> {
             hir::ItemEnum(_, ref generics) |
             hir::ItemStruct(_, ref generics) |
             hir::ItemUnion(_, ref generics) => {
-                if !generics.is_parameterized() {
+                if generics.params.is_empty() {
                     if self.mode == MonoItemCollectionMode::Eager {
                         let def_id = self.tcx.hir.local_def_id(item.id);
                         debug!("RootCollector: ADT drop-glue for {}",

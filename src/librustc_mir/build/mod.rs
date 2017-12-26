@@ -20,6 +20,7 @@ use rustc::mir::visit::{MutVisitor, TyContext};
 use rustc::ty::{self, Ty, TyCtxt};
 use rustc::ty::subst::Substs;
 use rustc::util::nodemap::NodeMap;
+use rustc_back::PanicStrategy;
 use rustc_const_eval::pattern::{BindingMode, PatternKind};
 use rustc_data_structures::indexed_vec::{IndexVec, Idx};
 use shim;
@@ -353,6 +354,27 @@ macro_rules! unpack {
     };
 }
 
+fn should_abort_on_panic<'a, 'gcx, 'tcx>(tcx: TyCtxt<'a, 'gcx, 'tcx>,
+                                         fn_id: ast::NodeId,
+                                         abi: Abi)
+                                         -> bool {
+
+    // Not callable from C, so we can safely unwind through these
+    if abi == Abi::Rust || abi == Abi::RustCall { return false; }
+
+    // We never unwind, so it's not relevant to stop an unwind
+    if tcx.sess.panic_strategy() != PanicStrategy::Unwind { return false; }
+
+    // We cannot add landing pads, so don't add one
+    if tcx.sess.no_landing_pads() { return false; }
+
+    // This is a special case: some functions have a C abi but are meant to
+    // unwind anyway. Don't stop them.
+    if tcx.has_attr(tcx.hir.local_def_id(fn_id), "unwind") { return false; }
+
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 /// the main entry point for building MIR for a function
 
@@ -383,6 +405,10 @@ fn construct_fn<'a, 'gcx, 'tcx, A>(hir: Cx<'a, 'gcx, 'tcx>,
     let source_info = builder.source_info(span);
     let call_site_s = (call_site_scope, source_info);
     unpack!(block = builder.in_scope(call_site_s, LintLevel::Inherited, block, |builder| {
+        if should_abort_on_panic(tcx, fn_id, abi) {
+            builder.schedule_abort();
+        }
+
         let arg_scope_s = (arg_scope, source_info);
         unpack!(block = builder.in_scope(arg_scope_s, LintLevel::Inherited, block, |builder| {
             builder.args_and_body(block, &arguments, arg_scope, &body.value)
@@ -409,6 +435,9 @@ fn construct_fn<'a, 'gcx, 'tcx, A>(hir: Cx<'a, 'gcx, 'tcx>,
         // RustCall pseudo-ABI untuples the last argument.
         spread_arg = Some(Local::new(arguments.len()));
     }
+    let closure_expr_id = tcx.hir.local_def_id(fn_id);
+    info!("fn_id {:?} has attrs {:?}", closure_expr_id,
+          tcx.get_attrs(closure_expr_id));
 
     // Gather the upvars of a closure, if any.
     let upvar_decls: Vec<_> = tcx.with_freevars(fn_id, |freevars| {
@@ -471,6 +500,13 @@ fn construct_const<'a, 'gcx, 'tcx>(hir: Cx<'a, 'gcx, 'tcx>,
 
     // Constants can't `return` so a return block should not be created.
     assert_eq!(builder.cached_return_block, None);
+
+    // Constants may be match expressions in which case an unreachable block may
+    // be created, so terminate it properly.
+    if let Some(unreachable_block) = builder.cached_unreachable_block {
+        builder.cfg.terminate(unreachable_block, source_info,
+                              TerminatorKind::Unreachable);
+    }
 
     builder.finish(vec![], None)
 }
@@ -571,7 +607,7 @@ impl<'a, 'gcx, 'tcx> Builder<'a, 'gcx, 'tcx> {
                     scope: ARGUMENT_VISIBILITY_SCOPE,
                     span: pattern.map_or(self.fn_span, |pat| pat.span)
                 },
-                lexical_scope: ARGUMENT_VISIBILITY_SCOPE,
+                syntactic_scope: ARGUMENT_VISIBILITY_SCOPE,
                 name,
                 internal: false,
                 is_user_variable: false,

@@ -1,4 +1,4 @@
-// Copyright 2012 The Rust Project Developers. See the COPYRIGHT
+// Copyright 2017 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -8,11 +8,4 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![feature(box_syntax)]
-
-fn dup(x: Box<isize>) -> Box<(Box<isize>,Box<isize>)> {
-    box (x, x) //~ ERROR use of moved value
-}
-fn main() {
-    dup(box 3);
-}
+fn main() {}

@@ -4279,7 +4279,12 @@ impl<'a, 'gcx, 'tcx> FnCtxt<'a, 'gcx, 'tcx> {
                 //
                 // #41425 -- label the implicit `()` as being the
                 // "found type" here, rather than the "expected type".
-                if !self.diverges.get().always() {
+                //
+                // #44579 -- if the block was recovered during parsing,
+                // the type would be nonsensical and it is not worth it
+                // to perform the type check, so we avoid generating the
+                // diagnostic output.
+                if !self.diverges.get().always() && !blk.recovered {
                     coerce.coerce_forced_unit(self, &self.misc(blk.span), &mut |err| {
                         if let Some(expected_ty) = expected.only_has_type(self) {
                             self.consider_hint_about_removing_semicolon(blk,
@@ -4949,16 +4954,18 @@ pub fn check_bounds_are_used<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
                                        generics: &hir::Generics,
                                        ty: Ty<'tcx>) {
     debug!("check_bounds_are_used(n_tps={}, ty={:?})",
-           generics.ty_params.len(),  ty);
+           generics.ty_params().count(),  ty);
 
     // make a vector of booleans initially false, set to true when used
-    if generics.ty_params.is_empty() { return; }
-    let mut tps_used = vec![false; generics.ty_params.len()];
+    if generics.ty_params().next().is_none() { return; }
+    let mut tps_used = vec![false; generics.ty_params().count()];
+
+    let lifetime_count = generics.lifetimes().count();
 
     for leaf_ty in ty.walk() {
         if let ty::TyParam(ParamTy {idx, ..}) = leaf_ty.sty {
             debug!("Found use of ty param num {}", idx);
-            tps_used[idx as usize - generics.lifetimes.len()] = true;
+            tps_used[idx as usize - lifetime_count] = true;
         } else if let ty::TyError = leaf_ty.sty {
             // If there already another error, do not emit an error for not using a type Parameter
             assert!(tcx.sess.err_count() > 0);
@@ -4966,7 +4973,7 @@ pub fn check_bounds_are_used<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
         }
     }
 
-    for (&used, param) in tps_used.iter().zip(&generics.ty_params) {
+    for (&used, param) in tps_used.iter().zip(generics.ty_params()) {
         if !used {
             struct_span_err!(tcx.sess, param.span, E0091,
                 "type parameter `{}` is unused",

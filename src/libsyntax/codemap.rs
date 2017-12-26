@@ -246,6 +246,7 @@ impl CodeMap {
                                 name_was_remapped: bool,
                                 crate_of_origin: u32,
                                 src_hash: u128,
+                                name_hash: u128,
                                 source_len: usize,
                                 mut file_local_lines: Vec<BytePos>,
                                 mut file_local_multibyte_chars: Vec<MultiByteChar>,
@@ -282,6 +283,7 @@ impl CodeMap {
             lines: RefCell::new(file_local_lines),
             multibyte_chars: RefCell::new(file_local_multibyte_chars),
             non_narrow_chars: RefCell::new(file_local_non_narrow_chars),
+            name_hash,
         });
 
         files.push(filemap.clone());
@@ -442,6 +444,12 @@ impl CodeMap {
     pub fn span_to_unmapped_path(&self, sp: Span) -> FileName {
         self.lookup_char_pos(sp.lo()).file.unmapped_path.clone()
             .expect("CodeMap::span_to_unmapped_path called for imported FileMap?")
+    }
+
+    pub fn is_multiline(&self, sp: Span) -> bool {
+        let lo = self.lookup_char_pos(sp.lo());
+        let hi = self.lookup_char_pos(sp.hi());
+        lo.line != hi.line
     }
 
     pub fn span_to_lines(&self, sp: Span) -> FileLinesResult {

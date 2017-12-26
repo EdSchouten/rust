@@ -438,7 +438,7 @@ macro_rules! define_maps {
                     use rustc_data_structures::stable_hasher::{StableHasher, HashStable};
                     use ich::Fingerprint;
 
-                    assert!(Some(tcx.dep_graph.fingerprint_of(dep_node)) ==
+                    assert!(Some(tcx.dep_graph.fingerprint_of(dep_node_index)) ==
                             tcx.dep_graph.prev_fingerprint_of(dep_node),
                             "Fingerprint for green query instance not loaded \
                              from cache: {:?}", dep_node);
@@ -452,7 +452,7 @@ macro_rules! define_maps {
                     let new_hash: Fingerprint = hasher.finish();
                     debug!("END verify_ich({:?})", dep_node);
 
-                    let old_hash = tcx.dep_graph.fingerprint_of(dep_node);
+                    let old_hash = tcx.dep_graph.fingerprint_of(dep_node_index);
 
                     assert!(new_hash == old_hash, "Found unstable fingerprints \
                         for {:?}", dep_node);
@@ -978,4 +978,5 @@ impl_load_from_cache!(
     SymbolName => def_symbol_name,
     ConstIsRvaluePromotableToStatic => const_is_rvalue_promotable_to_static,
     ContainsExternIndicator => contains_extern_indicator,
+    CheckMatch => check_match,
 );

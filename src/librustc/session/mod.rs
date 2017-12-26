@@ -725,6 +725,12 @@ impl Session {
         ret
     }
 
+    /// Returns the number of query threads that should be used for this
+    /// compilation
+    pub fn query_threads(&self) -> usize {
+        self.opts.debugging_opts.query_threads.unwrap_or(1)
+    }
+
     /// Returns the number of codegen units that should be used for this
     /// compilation
     pub fn codegen_units(&self) -> usize {
@@ -785,10 +791,7 @@ impl Session {
         // As a result 16 was chosen here! Mostly because it was a power of 2
         // and most benchmarks agreed it was roughly a local optimum. Not very
         // scientific.
-        match self.opts.optimize {
-            config::OptLevel::No => 16,
-            _ => 1, // FIXME(#46346) this should be 16
-        }
+        16
     }
 
     /// Returns whether ThinLTO is enabled for this compilation

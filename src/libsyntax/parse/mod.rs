@@ -905,9 +905,8 @@ mod tests {
                                         node: ast::Constness::NotConst,
                                     },
                                     Abi::Rust,
-                                    ast::Generics{ // no idea on either of these:
-                                        lifetimes: Vec::new(),
-                                        ty_params: Vec::new(),
+                                    ast::Generics{
+                                        params: Vec::new(),
                                         where_clause: ast::WhereClause {
                                             id: ast::DUMMY_NODE_ID,
                                             predicates: Vec::new(),
@@ -931,6 +930,7 @@ mod tests {
                                         id: ast::DUMMY_NODE_ID,
                                         rules: ast::BlockCheckMode::Default, // no idea
                                         span: sp(15,21),
+                                        recovered: false,
                                     })),
                             vis: ast::Visibility::Inherited,
                             span: sp(0,21)})));

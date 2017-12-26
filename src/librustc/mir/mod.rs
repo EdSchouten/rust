@@ -481,11 +481,83 @@ pub struct LocalDecl<'tcx> {
     /// Source info of the local.
     pub source_info: SourceInfo,
 
-    /// The *lexical* visibility scope the local is defined
+    /// The *syntactic* visibility scope the local is defined
     /// in. If the local was defined in a let-statement, this
     /// is *within* the let-statement, rather than outside
     /// of it.
-    pub lexical_scope: VisibilityScope,
+    ///
+    /// This is needed because visibility scope of locals within a let-statement
+    /// is weird.
+    ///
+    /// The reason is that we want the local to be *within* the let-statement
+    /// for lint purposes, but we want the local to be *after* the let-statement
+    /// for names-in-scope purposes.
+    ///
+    /// That's it, if we have a let-statement like the one in this
+    /// function:
+    /// ```
+    /// fn foo(x: &str) {
+    ///     #[allow(unused_mut)]
+    ///     let mut x: u32 = { // <- one unused mut
+    ///         let mut y: u32 = x.parse().unwrap();
+    ///         y + 2
+    ///     };
+    ///     drop(x);
+    /// }
+    /// ```
+    ///
+    /// Then, from a lint point of view, the declaration of `x: u32`
+    /// (and `y: u32`) are within the `#[allow(unused_mut)]` scope - the
+    /// lint scopes are the same as the AST/HIR nesting.
+    ///
+    /// However, from a name lookup point of view, the scopes look more like
+    /// as if the let-statements were `match` expressions:
+    ///
+    /// ```
+    /// fn foo(x: &str) {
+    ///     match {
+    ///         match x.parse().unwrap() {
+    ///             y => y + 2
+    ///         }
+    ///     } {
+    ///         x => drop(x)
+    ///     };
+    /// }
+    /// ```
+    ///
+    /// We care about the name-lookup scopes for debuginfo - if the
+    /// debuginfo instruction pointer is at the call to `x.parse()`, we
+    /// want `x` to refer to `x: &str`, but if it is at the call to
+    /// `drop(x)`, we want it to refer to `x: u32`.
+    ///
+    /// To allow both uses to work, we need to have more than a single scope
+    /// for a local. We have the `syntactic_scope` represent the
+    /// "syntactic" lint scope (with a variable being under its let
+    /// block) while the source-info scope represents the "local variable"
+    /// scope (where the "rest" of a block is under all prior let-statements).
+    ///
+    /// The end result looks like this:
+    ///
+    /// ROOT SCOPE
+    ///  │{ argument x: &str }
+    ///  │
+    ///  │ │{ #[allow(unused_mut] } // this is actually split into 2 scopes
+    ///  │ │                        // in practice because I'm lazy.
+    ///  │ │
+    ///  │ │← x.syntactic_scope
+    ///  │ │← `x.parse().unwrap()`
+    ///  │ │
+    ///  │ │ │← y.syntactic_scope
+    ///  │ │
+    ///  │ │ │{ let y: u32 }
+    ///  │ │ │
+    ///  │ │ │← y.source_info.scope
+    ///  │ │ │← `y + 2`
+    ///  │
+    ///  │ │{ let x: u32 }
+    ///  │ │← x.source_info.scope
+    ///  │ │← `drop(x)` // this accesses `x: u32`
+    pub syntactic_scope: VisibilityScope,
 }
 
 impl<'tcx> LocalDecl<'tcx> {
@@ -500,7 +572,7 @@ impl<'tcx> LocalDecl<'tcx> {
                 span,
                 scope: ARGUMENT_VISIBILITY_SCOPE
             },
-            lexical_scope: ARGUMENT_VISIBILITY_SCOPE,
+            syntactic_scope: ARGUMENT_VISIBILITY_SCOPE,
             internal: false,
             is_user_variable: false
         }
@@ -517,7 +589,7 @@ impl<'tcx> LocalDecl<'tcx> {
                 span,
                 scope: ARGUMENT_VISIBILITY_SCOPE
             },
-            lexical_scope: ARGUMENT_VISIBILITY_SCOPE,
+            syntactic_scope: ARGUMENT_VISIBILITY_SCOPE,
             internal: true,
             is_user_variable: false
         }
@@ -535,7 +607,7 @@ impl<'tcx> LocalDecl<'tcx> {
                 span,
                 scope: ARGUMENT_VISIBILITY_SCOPE
             },
-            lexical_scope: ARGUMENT_VISIBILITY_SCOPE,
+            syntactic_scope: ARGUMENT_VISIBILITY_SCOPE,
             internal: false,
             name: None,     // FIXME maybe we do want some name here?
             is_user_variable: false
@@ -636,6 +708,10 @@ pub enum TerminatorKind<'tcx> {
     /// Indicates that the landing pad is finished and unwinding should
     /// continue. Emitted by build::scope::diverge_cleanup.
     Resume,
+
+    /// Indicates that the landing pad is finished and that the process
+    /// should abort. Used to prevent unwinding for foreign items.
+    Abort,
 
     /// Indicates a normal return. The return place should have
     /// been filled in by now. This should occur at most once.
@@ -759,7 +835,7 @@ impl<'tcx> TerminatorKind<'tcx> {
         match *self {
             Goto { target: ref b } => slice::from_ref(b).into_cow(),
             SwitchInt { targets: ref b, .. } => b[..].into_cow(),
-            Resume | GeneratorDrop => (&[]).into_cow(),
+            Resume | Abort | GeneratorDrop => (&[]).into_cow(),
             Return => (&[]).into_cow(),
             Unreachable => (&[]).into_cow(),
             Call { destination: Some((_, t)), cleanup: Some(c), .. } => vec![t, c].into_cow(),
@@ -794,7 +870,7 @@ impl<'tcx> TerminatorKind<'tcx> {
         match *self {
             Goto { target: ref mut b } => vec![b],
             SwitchInt { targets: ref mut b, .. } => b.iter_mut().collect(),
-            Resume | GeneratorDrop => Vec::new(),
+            Resume | Abort | GeneratorDrop => Vec::new(),
             Return => Vec::new(),
             Unreachable => Vec::new(),
             Call { destination: Some((_, ref mut t)), cleanup: Some(ref mut c), .. } => vec![t, c],
@@ -823,6 +899,7 @@ impl<'tcx> TerminatorKind<'tcx> {
         match *self {
             TerminatorKind::Goto { .. } |
             TerminatorKind::Resume |
+            TerminatorKind::Abort |
             TerminatorKind::Return |
             TerminatorKind::Unreachable |
             TerminatorKind::GeneratorDrop |
@@ -918,6 +995,7 @@ impl<'tcx> TerminatorKind<'tcx> {
             Return => write!(fmt, "return"),
             GeneratorDrop => write!(fmt, "generator_drop"),
             Resume => write!(fmt, "resume"),
+            Abort => write!(fmt, "abort"),
             Yield { ref value, .. } => write!(fmt, "_1 = suspend({:?})", value),
             Unreachable => write!(fmt, "unreachable"),
             Drop { ref location, .. } => write!(fmt, "drop({:?})", location),
@@ -970,7 +1048,7 @@ impl<'tcx> TerminatorKind<'tcx> {
     pub fn fmt_successor_labels(&self) -> Vec<Cow<'static, str>> {
         use self::TerminatorKind::*;
         match *self {
-            Return | Resume | Unreachable | GeneratorDrop => vec![],
+            Return | Resume | Abort | Unreachable | GeneratorDrop => vec![],
             Goto { .. } => vec!["".into()],
             SwitchInt { ref values, .. } => {
                 values.iter()
@@ -1818,7 +1896,7 @@ pub struct GeneratorLayout<'tcx> {
 ///
 /// Example: If type check produces a closure with the closure substs:
 ///
-/// ```
+/// ```text
 /// ClosureSubsts = [
 ///     i8,                                  // the "closure kind"
 ///     for<'x> fn(&'a &'x u32) -> &'x u32,  // the "closure signature"
@@ -1829,7 +1907,7 @@ pub struct GeneratorLayout<'tcx> {
 /// here, there is one unique free region (`'a`) but it appears
 /// twice. We would "renumber" each occurence to a unique vid, as follows:
 ///
-/// ```
+/// ```text
 /// ClosureSubsts = [
 ///     i8,                                  // the "closure kind"
 ///     for<'x> fn(&'1 &'x u32) -> &'x u32,  // the "closure signature"
@@ -2102,6 +2180,7 @@ impl<'tcx> TypeFoldable<'tcx> for Terminator<'tcx> {
             },
             GeneratorDrop => GeneratorDrop,
             Resume => Resume,
+            Abort => Abort,
             Return => Return,
             Unreachable => Unreachable,
             FalseEdges { real_target, ref imaginary_targets } =>
@@ -2143,6 +2222,7 @@ impl<'tcx> TypeFoldable<'tcx> for Terminator<'tcx> {
             },
             Goto { .. } |
             Resume |
+            Abort |
             Return |
             GeneratorDrop |
             Unreachable |
