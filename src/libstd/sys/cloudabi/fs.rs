@@ -1,10 +1,11 @@
 extern crate cloudabi;
 
 use io::{self, SeekFrom};
+use libc::c_int;
 use mem;
 use sys::fd::FileDesc;
 use sys::time::SystemTime;
-use sys_common::AsInner;
+use sys_common::{AsInner, FromInner};
 
 #[derive(Debug)]
 pub struct File(FileDesc);
@@ -139,4 +140,10 @@ impl File {
     pub fn fd(&self) -> &FileDesc { &self.0 }
 
     pub fn into_fd(self) -> FileDesc { self.0 }
+}
+
+impl FromInner<c_int> for File {
+    fn from_inner(fd: c_int) -> File {
+        File(FileDesc::new(fd))
+    }
 }

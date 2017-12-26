@@ -49,7 +49,7 @@ cfg_if! {
         #[cfg(target_os = "emscripten")] pub mod emscripten;
         #[cfg(target_os = "fuchsia")]    pub mod fuchsia;
 
-        #[cfg(any(target_os = "redox", unix))]
+        #[cfg(any(target_os = "cloudabi", target_os = "redox", unix))]
         #[stable(feature = "rust1", since = "1.0.0")]
         pub use sys::ext as unix;
 
