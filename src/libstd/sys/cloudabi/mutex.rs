@@ -54,7 +54,7 @@ impl Mutex {
                 true
             }
             Err(old) => {
-                // Failure. Lock cannot be acquired by the current thread.
+                // Failure. Crash upon recursive acquisition.
                 assert_ne!(
                     old & !cloudabi::LOCK_KERNEL_MANAGED.0,
                     __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
@@ -65,15 +65,52 @@ impl Mutex {
     }
 
     pub unsafe fn lock(&self) {
-        // TODO(ed): Implement!
+        if !self.try_lock() {
+            // Call into the kernel to acquire a write lock.
+            let lock = self.lock.get();
+            let subscription = cloudabi::subscription {
+                type_: cloudabi::eventtype::LOCK_WRLOCK,
+                union: cloudabi::subscription_union {
+                    lock: cloudabi::subscription_lock {
+                        lock: lock as *mut cloudabi::lock,
+                        lock_scope: cloudabi::scope::PRIVATE,
+                    },
+                },
+                ..mem::zeroed()
+            };
+            let mut event: cloudabi::event = mem::uninitialized();
+            let mut nevents: usize = mem::uninitialized();
+            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+        }
     }
 
     pub unsafe fn unlock(&self) {
-        // TODO(ed): Implement!
+        let lock = self.lock.get();
+        match (*lock).compare_exchange(
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            cloudabi::LOCK_UNLOCKED.0,
+            Ordering::Release,
+            Ordering::Relaxed,
+        ) {
+            Ok(_) => {}
+            Err(old) => {
+                // Lock is managed by kernelspace. Call into the kernel
+                // to unblock waiting threads.
+                assert_eq!(
+                    old,
+                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                        | cloudabi::LOCK_KERNEL_MANAGED.0
+                );
+                let ret =
+                    cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
+                assert_eq!(ret, cloudabi::errno::SUCCESS);
+            }
+        }
     }
 
     pub unsafe fn destroy(&self) {
-        // TODO(ed): Implement!
         let lock = self.lock.get();
         assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
     }
