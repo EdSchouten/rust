@@ -289,21 +289,12 @@ pub use self::cursor::Cursor;
 pub use self::error::{Result, Error, ErrorKind};
 #[stable(feature = "rust1", since = "1.0.0")]
 pub use self::util::{copy, sink, Sink, empty, Empty, repeat, Repeat};
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
-pub use self::stdio::{stdin, stdout, Stdin, Stdout};
+pub use self::stdio::{stdin, stdout, stderr, Stdin, Stdout, Stderr};
 #[stable(feature = "rust1", since = "1.0.0")]
-pub use self::stdio::{stderr, Stderr};
-#[cfg(not(target_os = "cloudabi"))]
-#[stable(feature = "rust1", since = "1.0.0")]
-pub use self::stdio::{StdinLock, StdoutLock};
-#[stable(feature = "rust1", since = "1.0.0")]
-pub use self::stdio::StderrLock;
-#[cfg(not(target_os = "cloudabi"))]
+pub use self::stdio::{StdoutLock, StderrLock, StdinLock};
 #[unstable(feature = "print_internals", issue = "0")]
-pub use self::stdio::_print;
-#[unstable(feature = "print_internals", issue = "0")]
-pub use self::stdio::_eprint;
+pub use self::stdio::{_print, _eprint};
 #[unstable(feature = "libstd_io_internals", issue = "42788")]
 #[doc(no_inline, hidden)]
 pub use self::stdio::{set_panic, set_print};

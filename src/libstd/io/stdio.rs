@@ -13,12 +13,8 @@ use io::prelude::*;
 use cell::RefCell;
 use fmt;
 use io::lazy::Lazy;
-use io;
-#[cfg(not(target_os = "cloudabi"))]
-use io::{Initializer, BufReader, LineWriter};
-use sync::Arc;
-#[cfg(not(target_os = "cloudabi"))]
-use sync::{Mutex, MutexGuard};
+use io::{self, Initializer, BufReader, LineWriter};
+use sync::{Arc, Mutex, MutexGuard};
 use sys::stdio;
 use sys_common::remutex::{ReentrantMutex, ReentrantMutexGuard};
 use thread::{LocalKey, LocalKeyState};
@@ -34,14 +30,12 @@ thread_local! {
 ///
 /// This handle is not synchronized or buffered in any fashion. Constructed via
 /// the `std::io::stdio::stdin_raw` function.
-#[cfg(not(target_os = "cloudabi"))]
 struct StdinRaw(stdio::Stdin);
 
 /// A handle to a raw instance of the standard output stream of this process.
 ///
 /// This handle is not synchronized or buffered in any fashion. Constructed via
 /// the `std::io::stdio::stdout_raw` function.
-#[cfg(not(target_os = "cloudabi"))]
 struct StdoutRaw(stdio::Stdout);
 
 /// A handle to a raw instance of the standard output stream of this process.
@@ -57,7 +51,6 @@ struct StderrRaw(stdio::Stderr);
 /// handles is **not** available to raw handles returned from this function.
 ///
 /// The returned handle has no external synchronization or buffering.
-#[cfg(not(target_os = "cloudabi"))]
 fn stdin_raw() -> io::Result<StdinRaw> { stdio::Stdin::new().map(StdinRaw) }
 
 /// Constructs a new raw handle to the standard output stream of this process.
@@ -69,7 +62,6 @@ fn stdin_raw() -> io::Result<StdinRaw> { stdio::Stdin::new().map(StdinRaw) }
 ///
 /// The returned handle has no external synchronization or buffering layered on
 /// top.
-#[cfg(not(target_os = "cloudabi"))]
 fn stdout_raw() -> io::Result<StdoutRaw> { stdio::Stdout::new().map(StdoutRaw) }
 
 /// Constructs a new raw handle to the standard error stream of this process.
@@ -81,7 +73,6 @@ fn stdout_raw() -> io::Result<StdoutRaw> { stdio::Stdout::new().map(StdoutRaw) }
 /// top.
 fn stderr_raw() -> io::Result<StderrRaw> { stdio::Stderr::new().map(StderrRaw) }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl Read for StdinRaw {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.0.read(buf) }
 
@@ -90,7 +81,6 @@ impl Read for StdinRaw {
         Initializer::nop()
     }
 }
-#[cfg(not(target_os = "cloudabi"))]
 impl Write for StdoutRaw {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> { self.0.write(buf) }
     fn flush(&mut self) -> io::Result<()> { self.0.flush() }
@@ -151,7 +141,6 @@ fn handle_ebadf<T>(r: io::Result<T>, default: T) -> io::Result<T> {
 ///
 /// [`io::stdin`]: fn.stdin.html
 /// [`BufRead`]: trait.BufRead.html
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct Stdin {
     inner: Arc<Mutex<BufReader<Maybe<StdinRaw>>>>,
@@ -165,7 +154,6 @@ pub struct Stdin {
 /// [`Read`]: trait.Read.html
 /// [`BufRead`]: trait.BufRead.html
 /// [`Stdin::lock`]: struct.Stdin.html#method.lock
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct StdinLock<'a> {
     inner: MutexGuard<'a, BufReader<Maybe<StdinRaw>>>,
@@ -207,7 +195,6 @@ pub struct StdinLock<'a> {
 /// # Ok(buffer)
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn stdin() -> Stdin {
     static INSTANCE: Lazy<Mutex<BufReader<Maybe<StdinRaw>>>> = Lazy::new(stdin_init);
@@ -225,7 +212,6 @@ pub fn stdin() -> Stdin {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl Stdin {
     /// Locks this handle to the standard input stream, returning a readable
     /// guard.
@@ -290,7 +276,6 @@ impl Stdin {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl fmt::Debug for Stdin {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -298,7 +283,6 @@ impl fmt::Debug for Stdin {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl Read for Stdin {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
@@ -319,7 +303,6 @@ impl Read for Stdin {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<'a> Read for StdinLock<'a> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
@@ -331,14 +314,12 @@ impl<'a> Read for StdinLock<'a> {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<'a> BufRead for StdinLock<'a> {
     fn fill_buf(&mut self) -> io::Result<&[u8]> { self.inner.fill_buf() }
     fn consume(&mut self, n: usize) { self.inner.consume(n) }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl<'a> fmt::Debug for StdinLock<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -356,7 +337,6 @@ impl<'a> fmt::Debug for StdinLock<'a> {
 ///
 /// [`lock`]: #method.lock
 /// [`io::stdout`]: fn.stdout.html
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct Stdout {
     // FIXME: this should be LineWriter or BufWriter depending on the state of
@@ -372,7 +352,6 @@ pub struct Stdout {
 ///
 /// [`Write`]: trait.Write.html
 /// [`Stdout::lock`]: struct.Stdout.html#method.lock
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct StdoutLock<'a> {
     inner: ReentrantMutexGuard<'a, RefCell<LineWriter<Maybe<StdoutRaw>>>>,
@@ -414,7 +393,6 @@ pub struct StdoutLock<'a> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn stdout() -> Stdout {
     static INSTANCE: Lazy<ReentrantMutex<RefCell<LineWriter<Maybe<StdoutRaw>>>>>
@@ -432,7 +410,6 @@ pub fn stdout() -> Stdout {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl Stdout {
     /// Locks this handle to the standard output stream, returning a writable
     /// guard.
@@ -460,7 +437,6 @@ impl Stdout {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl fmt::Debug for Stdout {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -468,7 +444,6 @@ impl fmt::Debug for Stdout {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl Write for Stdout {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -484,7 +459,6 @@ impl Write for Stdout {
         self.lock().write_fmt(args)
     }
 }
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl<'a> Write for StdoutLock<'a> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
@@ -495,7 +469,6 @@ impl<'a> Write for StdoutLock<'a> {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "std_debug", since = "1.16.0")]
 impl<'a> fmt::Debug for StdoutLock<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -718,7 +691,6 @@ fn print_to<T>(args: fmt::Arguments,
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[unstable(feature = "print_internals",
            reason = "implementation detail which may disappear or be replaced at any time",
            issue = "0")]
