@@ -1,0 +1,12 @@
+[package]
+name = "cloudabi"
+version = "0.0.0"
+authors = ["Nuxi (https://nuxi.nl/) and contributors"]
+
+[lib]
+name = "cloudabi"
+path = "../../libcloudabi/rust/cloudabi.rs"
+
+[dependencies]
+bitflags = { path = "../bitflags_shim" }
+core = { path = "../../libcore" }

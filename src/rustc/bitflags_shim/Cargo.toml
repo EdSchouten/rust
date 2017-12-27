@@ -1,0 +1,11 @@
+[package]
+name = "bitflags"
+version = "0.0.0"
+authors = ["The Rust Project Developers"]
+
+[lib]
+name = "bitflags"
+path = "../../libbitflags/src/lib.rs"
+
+[dependencies]
+core = { path = "../../libcore" }
