@@ -64,7 +64,7 @@ impl Condvar {
     pub unsafe fn wait(&self, mutex: &Mutex) {
         let mutex = mutex::raw(mutex);
         assert_eq!(
-            (*mutex).load(Ordering::Relaxed) & ~cloudabi::LOCK_KERNEL_MANAGED.0,
+            (*mutex).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
             __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
         );
 
