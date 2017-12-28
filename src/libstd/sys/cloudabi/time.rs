@@ -61,9 +61,20 @@ impl SystemTime {
         SystemTime { t: t }
     }
 
-    pub fn sub_time(&self, _: &SystemTime) -> Result<Duration, Duration> {
-        // TODO(ed): Implement!
-        Err(Duration::new(5, 0))
+    pub fn sub_time(&self, other: &SystemTime) -> Result<Duration, Duration> {
+        if self.t >= other.t {
+            let diff = self.t - other.t;
+            Ok(Duration::new(
+                diff / NSEC_PER_SEC,
+                (diff % NSEC_PER_SEC) as u32,
+            ))
+        } else {
+            let diff = other.t - self.t;
+            Err(Duration::new(
+                diff / NSEC_PER_SEC,
+                (diff % NSEC_PER_SEC) as u32,
+            ))
+        }
     }
 
     pub fn add_duration(&self, other: &Duration) -> SystemTime {
