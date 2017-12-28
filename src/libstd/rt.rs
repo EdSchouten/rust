@@ -36,8 +36,6 @@ fn lang_start_internal(main: &(Fn() -> i32 + Sync + ::panic::RefUnwindSafe),
     use sys_common;
     use sys_common::thread_info;
     use thread::Thread;
-    #[cfg(not(feature = "backtrace"))]
-    use mem;
 
     sys::init();
 
@@ -53,6 +51,7 @@ fn lang_start_internal(main: &(Fn() -> i32 + Sync + ::panic::RefUnwindSafe),
         thread_info::set(main_guard, thread);
 
         // Store our args if necessary in a squirreled away location
+        #[cfg(not(target_os = "cloudabi"))]
         sys::args::init(argc, argv);
 
         // Let's run some code!
