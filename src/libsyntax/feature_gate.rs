@@ -444,6 +444,9 @@ declare_features! (
 
     // Nested `impl Trait`
     (active, nested_impl_trait, "1.24.0", Some(34511)),
+
+    // Termination trait in main (RFC 1937)
+    (active, termination_trait, "1.24.0", Some(43301)),
 );
 
 declare_features! (
@@ -1446,7 +1449,9 @@ impl<'a> Visitor<'a> for PostExpansionVisitor<'a> {
 
     fn visit_name(&mut self, sp: Span, name: ast::Name) {
         if !name.as_str().is_ascii() {
-            gate_feature_post!(&self, non_ascii_idents, sp,
+            gate_feature_post!(&self,
+                               non_ascii_idents,
+                               self.context.parse_sess.codemap().def_span(sp),
                                "non-ascii idents are not fully supported.");
         }
     }
