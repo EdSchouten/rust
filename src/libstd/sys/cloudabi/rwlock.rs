@@ -26,6 +26,10 @@ pub struct RWLock {
     lock: UnsafeCell<AtomicU32>,
 }
 
+pub unsafe fn raw(r: &RWLock) -> *mut AtomicU32 {
+    r.lock.get()
+}
+
 unsafe impl Send for RWLock {}
 unsafe impl Sync for RWLock {}
 

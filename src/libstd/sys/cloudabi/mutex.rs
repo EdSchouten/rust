@@ -12,6 +12,7 @@ extern crate cloudabi;
 
 use cell::UnsafeCell;
 use mem;
+use sys::rwlock::{self, RWLock};
 use sync::atomic::{AtomicU32, Ordering};
 
 extern "C" {
@@ -19,19 +20,18 @@ extern "C" {
     static __pthread_thread_id: cloudabi::tid;
 }
 
-pub unsafe fn raw(m: &Mutex) -> *mut AtomicU32 {
-    m.lock.get()
-}
+// Implement Mutex using an RWLock. This doesn't introduce any
+// performance overhead in this environment, as the operations would be
+// implemented identically.
+pub struct Mutex(RWLock);
 
-pub struct Mutex {
-    lock: UnsafeCell<AtomicU32>,
+pub unsafe fn raw(m: &Mutex) -> *mut AtomicU32 {
+    rwlock::raw(&m.0)
 }
 
 impl Mutex {
     pub const fn new() -> Mutex {
-        Mutex {
-            lock: UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0)),
-        }
+        Mutex(RWLock::new())
     }
 
     pub unsafe fn init(&mut self) {
@@ -41,84 +41,19 @@ impl Mutex {
     }
 
     pub unsafe fn try_lock(&self) -> bool {
-        // Attempt to acquire the lock.
-        let lock = self.lock.get();
-        if let Err(old) = (*lock).compare_exchange(
-            cloudabi::LOCK_UNLOCKED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-            Ordering::Acquire,
-            Ordering::Relaxed,
-        ) {
-            // Failure. Crash upon recursive acquisition.
-            assert_ne!(
-                old & !cloudabi::LOCK_KERNEL_MANAGED.0,
-                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-                "Attempted to recursively lock a non-recursive mutex"
-            );
-            false
-        } else {
-            // Success.
-            true
-        }
+        self.0.try_write()
     }
 
     pub unsafe fn lock(&self) {
-        if !self.try_lock() {
-            // Call into the kernel to acquire a write lock.
-            let lock = self.lock.get();
-            let subscription = cloudabi::subscription {
-                type_: cloudabi::eventtype::LOCK_WRLOCK,
-                union: cloudabi::subscription_union {
-                    lock: cloudabi::subscription_lock {
-                        lock: lock as *mut cloudabi::lock,
-                        lock_scope: cloudabi::scope::PRIVATE,
-                    },
-                },
-                ..mem::zeroed()
-            };
-            let mut event: cloudabi::event = mem::uninitialized();
-            let mut nevents: usize = mem::uninitialized();
-            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to acquire mutex");
-            assert_eq!(
-                event.error,
-                cloudabi::errno::SUCCESS,
-                "Failed to acquire mutex"
-            );
-        }
+        self.0.write()
     }
 
     pub unsafe fn unlock(&self) {
-        let lock = self.lock.get();
-        assert_eq!(
-            (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-            "This mutex is locked by a different thread"
-        );
-
-        if !(*lock)
-            .compare_exchange(
-                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-                cloudabi::LOCK_UNLOCKED.0,
-                Ordering::Release,
-                Ordering::Relaxed,
-            )
-            .is_ok()
-        {
-            // Lock is managed by kernelspace. Call into the kernel
-            // to unblock waiting threads.
-            let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to unlock a mutex");
-        }
+        self.0.write_unlock()
     }
 
     pub unsafe fn destroy(&self) {
-        let lock = self.lock.get();
-        assert_eq!(
-            (*lock).load(Ordering::Relaxed),
-            cloudabi::LOCK_UNLOCKED.0,
-            "Attempted to destroy locked mutex"
-        );
+        self.0.destroy()
     }
 }
 
