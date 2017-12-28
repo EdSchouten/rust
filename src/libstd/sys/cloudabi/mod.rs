@@ -43,33 +43,6 @@ pub fn decode_error_kind(errno: i32) -> ErrorKind {
     }
 }
 
-#[doc(hidden)]
-pub trait IsMinusOne {
-    fn is_minus_one(&self) -> bool;
-}
-
-macro_rules! impl_is_minus_one {
-    ($($t:ident)*) => ($(impl IsMinusOne for $t {
-        fn is_minus_one(&self) -> bool {
-            *self == -1
-        }
-    })*)
-}
-
-impl_is_minus_one! { i8 i16 i32 i64 isize }
-
-pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
-    Ok(t)
-}
-
-pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>
-where
-    T: IsMinusOne,
-    F: FnMut() -> T,
-{
-    return cvt(f());
-}
-
 pub unsafe fn abort_internal() -> ! {
     ::core::intrinsics::abort();
 }
