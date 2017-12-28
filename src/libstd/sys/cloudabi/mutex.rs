@@ -52,7 +52,8 @@ impl Mutex {
             // Failure. Crash upon recursive acquisition.
             assert_ne!(
                 old & !cloudabi::LOCK_KERNEL_MANAGED.0,
-                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                "Attempted to recursively lock a non-recursive mutex"
             );
             false
         } else {
@@ -78,8 +79,12 @@ impl Mutex {
             let mut event: cloudabi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
             let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
-            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to acquire mutex");
+            assert_eq!(
+                event.error,
+                cloudabi::errno::SUCCESS,
+                "Failed to acquire mutex"
+            );
         }
     }
 
@@ -87,7 +92,8 @@ impl Mutex {
         let lock = self.lock.get();
         assert_eq!(
             (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            "This mutex is locked by a different thread"
         );
 
         if !(*lock)
@@ -102,13 +108,17 @@ impl Mutex {
             // Lock is managed by kernelspace. Call into the kernel
             // to unblock waiting threads.
             let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to unlock a mutex");
         }
     }
 
     pub unsafe fn destroy(&self) {
         let lock = self.lock.get();
-        assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed),
+            cloudabi::LOCK_UNLOCKED.0,
+            "Attempted to destroy locked mutex"
+        );
     }
 }
 
@@ -149,7 +159,7 @@ impl ReentrantMutex {
             }
         } else {
             // Success.
-            assert_eq!(*recursion, 0);
+            assert_eq!(*recursion, 0, "Mutex has invalid recursion count");
             true
         }
     }
@@ -171,8 +181,12 @@ impl ReentrantMutex {
             let mut event: cloudabi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
             let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
-            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to acquire mutex");
+            assert_eq!(
+                event.error,
+                cloudabi::errno::SUCCESS,
+                "Failed to acquire mutex"
+            );
         }
     }
 
@@ -181,7 +195,8 @@ impl ReentrantMutex {
         let recursion = self.recursion.get();
         assert_eq!(
             (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            "This mutex is locked by a different thread"
         );
 
         if *recursion > 0 {
@@ -198,14 +213,18 @@ impl ReentrantMutex {
             // Lock is managed by kernelspace. Call into the kernel
             // to unblock waiting threads.
             let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to unlock a mutex");
         }
     }
 
     pub unsafe fn destroy(&self) {
         let lock = self.lock.get();
         let recursion = self.recursion.get();
-        assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
-        assert_eq!(*recursion, 0);
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed),
+            cloudabi::LOCK_UNLOCKED.0,
+            "Attempted to destroy locked mutex"
+        );
+        assert_eq!(*recursion, 0, "Recursion counter invalid");
     }
 }

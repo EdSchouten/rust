@@ -45,7 +45,11 @@ impl Condvar {
                 cloudabi::scope::PRIVATE,
                 1,
             );
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(
+                ret,
+                cloudabi::errno::SUCCESS,
+                "Failed to signal on condition variable"
+            );
         }
     }
 
@@ -57,7 +61,11 @@ impl Condvar {
                 cloudabi::scope::PRIVATE,
                 u32::max_value(),
             );
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(
+                ret,
+                cloudabi::errno::SUCCESS,
+                "Failed to broadcast on condition variable"
+            );
         }
     }
 
@@ -65,7 +73,8 @@ impl Condvar {
         let mutex = mutex::raw(mutex);
         assert_eq!(
             (*mutex).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            "This lock is not write-locked by this thread"
         );
 
         // Call into the kernel to wait on the condition variable.
@@ -85,8 +94,16 @@ impl Condvar {
         let mut event: cloudabi::event = mem::uninitialized();
         let mut nevents: usize = mem::uninitialized();
         let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-        assert_eq!(ret, cloudabi::errno::SUCCESS);
-        assert_eq!(event.error, cloudabi::errno::SUCCESS);
+        assert_eq!(
+            ret,
+            cloudabi::errno::SUCCESS,
+            "Failed to wait on condition variable"
+        );
+        assert_eq!(
+            event.error,
+            cloudabi::errno::SUCCESS,
+            "Failed to wait on condition variable"
+        );
     }
 
     pub unsafe fn wait_timeout(&self, _: &Mutex, _: Duration) -> bool {
@@ -98,7 +115,8 @@ impl Condvar {
         let condvar = self.condvar.get();
         assert_eq!(
             (*condvar).load(Ordering::Relaxed),
-            cloudabi::CONDVAR_HAS_NO_WAITERS.0
+            cloudabi::CONDVAR_HAS_NO_WAITERS.0,
+            "Attempted to destroy a condition variable with blocked threads"
         );
     }
 }
