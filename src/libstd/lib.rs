@@ -230,8 +230,6 @@
 // Turn warnings into errors, but only after stage0, where it can be useful for
 // code to emit warnings during language transitions
 #![deny(warnings)]
-#![allow(dead_code)]
-#![allow(missing_docs)]
 #![allow(unused_imports)]
 
 // std may use features in a platform-specific way
