@@ -88,25 +88,24 @@ impl Mutex {
 
     pub unsafe fn unlock(&self) {
         let lock = self.lock.get();
-        match (*lock).compare_exchange(
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-            cloudabi::LOCK_UNLOCKED.0,
-            Ordering::Release,
-            Ordering::Relaxed,
-        ) {
-            Ok(_) => {}
-            Err(old) => {
-                // Lock is managed by kernelspace. Call into the kernel
-                // to unblock waiting threads.
-                assert_eq!(
-                    old,
-                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
-                        | cloudabi::LOCK_KERNEL_MANAGED.0
-                );
-                let ret =
-                    cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-                assert_eq!(ret, cloudabi::errno::SUCCESS);
-            }
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+        );
+
+        if !(*lock)
+            .compare_exchange(
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                cloudabi::LOCK_UNLOCKED.0,
+                Ordering::Release,
+                Ordering::Relaxed,
+            )
+            .is_ok()
+        {
+            // Lock is managed by kernelspace. Call into the kernel
+            // to unblock waiting threads.
+            let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
         }
     }
 
@@ -184,7 +183,29 @@ impl ReentrantMutex {
     }
 
     pub unsafe fn unlock(&self) {
-        // TODO(ed): Implement!
+        let lock = self.lock.get();
+        let recursion = self.recursion.get();
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+        );
+
+        if *recursion > 0 {
+            *recursion -= 1;
+        } else if !(*lock)
+            .compare_exchange(
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                cloudabi::LOCK_UNLOCKED.0,
+                Ordering::Release,
+                Ordering::Relaxed,
+            )
+            .is_ok()
+        {
+            // Lock is managed by kernelspace. Call into the kernel
+            // to unblock waiting threads.
+            let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+        }
     }
 
     pub unsafe fn destroy(&self) {
