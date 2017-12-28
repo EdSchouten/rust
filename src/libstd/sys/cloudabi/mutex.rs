@@ -145,6 +145,8 @@ impl ReentrantMutex {
     }
 
     pub unsafe fn destroy(&self) {
-        // TODO(ed): Implement!
+        let lock = self.lock.get();
+        assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
+        assert_eq!(self.recursion, 0);
     }
 }

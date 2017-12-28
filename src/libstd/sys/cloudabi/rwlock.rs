@@ -1,15 +1,19 @@
 extern crate cloudabi;
 
-use sync::atomic::AtomicU32;
+use cell::UnsafeCell;
+use sync::atomic::{AtomicU32, Ordering};
 
 pub struct RWLock {
-    lock: AtomicU32,
+    lock: UnsafeCell<AtomicU32>,
 }
+
+unsafe impl Send for RWLock {}
+unsafe impl Sync for RWLock {}
 
 impl RWLock {
     pub const fn new() -> RWLock {
         RWLock {
-            lock: AtomicU32::new(cloudabi::LOCK_UNLOCKED.0),
+            lock: UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0)),
         }
     }
 
@@ -40,6 +44,7 @@ impl RWLock {
     }
 
     pub unsafe fn destroy(&self) {
-        // TODO(ed): Implement!
+        let lock = self.lock.get();
+        assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
     }
 }
