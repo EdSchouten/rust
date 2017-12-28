@@ -230,7 +230,6 @@
 // Turn warnings into errors, but only after stage0, where it can be useful for
 // code to emit warnings during language transitions
 #![deny(warnings)]
-#![allow(unused_imports)]
 
 // std may use features in a platform-specific way
 #![allow(unused_features)]
@@ -358,6 +357,7 @@ use prelude::v1::*;
                  debug_assert_ne, unreachable, unimplemented, write, writeln, try)]
 extern crate core as __core;
 
+#[allow(unused_imports)]
 #[macro_use]
 #[macro_reexport(vec, format)]
 extern crate alloc;
