@@ -43,24 +43,21 @@ impl Mutex {
     pub unsafe fn try_lock(&self) -> bool {
         // Attempt to acquire the lock.
         let lock = self.lock.get();
-        match (*lock).compare_exchange(
+        if let Err(old) = (*lock).compare_exchange(
             cloudabi::LOCK_UNLOCKED.0,
             __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
             Ordering::Acquire,
             Ordering::Relaxed,
         ) {
-            Ok(_) => {
-                // Success.
-                true
-            }
-            Err(old) => {
-                // Failure. Crash upon recursive acquisition.
-                assert_ne!(
-                    old & !cloudabi::LOCK_KERNEL_MANAGED.0,
-                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
-                );
-                false
-            }
+            // Failure. Crash upon recursive acquisition.
+            assert_ne!(
+                old & !cloudabi::LOCK_KERNEL_MANAGED.0,
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            );
+            false
+        } else {
+            // Success.
+            true
         }
     }
 
@@ -134,29 +131,26 @@ impl ReentrantMutex {
         // Attempt to acquire the lock.
         let lock = self.lock.get();
         let recursion = self.recursion.get();
-        match (*lock).compare_exchange(
+        if let Err(old) = (*lock).compare_exchange(
             cloudabi::LOCK_UNLOCKED.0,
             __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
             Ordering::Acquire,
             Ordering::Relaxed,
         ) {
-            Ok(_) => {
-                // Success.
-                assert_eq!(*recursion, 0);
+            // If we fail to acquire the lock, it may be the case
+            // that we've already acquired it and may need to recurse.
+            if old & !cloudabi::LOCK_KERNEL_MANAGED.0
+                == __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            {
+                *recursion += 1;
                 true
+            } else {
+                false
             }
-            Err(old) => {
-                // If we fail to acquire the lock, it may be the case
-                // that we've already acquired it and may need to recurse.
-                if old & !cloudabi::LOCK_KERNEL_MANAGED.0
-                    == __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
-                {
-                    *recursion += 1;
-                    true
-                } else {
-                    false
-                }
-            }
+        } else {
+            // Success.
+            assert_eq!(*recursion, 0);
+            true
         }
     }
 
