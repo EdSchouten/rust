@@ -4,7 +4,6 @@ use mem;
 
 pub mod cmath;
 pub mod condvar;
-pub mod env;
 pub mod ext;
 pub mod fd;
 pub mod fs;

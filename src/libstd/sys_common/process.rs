@@ -79,7 +79,6 @@ impl<K: EnvKey> CommandEnv<K> {
     }
 
     // Apply these changes directly to the current environment
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn apply(&self) {
         if self.clear {
             for (k, _) in env::vars_os() {

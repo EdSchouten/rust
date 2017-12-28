@@ -9,8 +9,6 @@
 // except according to those terms.
 
 use alloc::boxed::FnBox;
-use env;
-use sync::atomic::{self, Ordering};
 use sys::stack_overflow;
 use sys::thread as imp;
 
@@ -24,7 +22,16 @@ pub unsafe fn start_thread(main: *mut u8) {
     Box::from_raw(main as *mut Box<FnBox()>)()
 }
 
+#[cfg(target_os = "cloudabi")]
 pub fn min_stack() -> usize {
+    imp::DEFAULT_MIN_STACK_SIZE
+}
+
+#[cfg(not(target_os = "cloudabi"))]
+pub fn min_stack() -> usize {
+    use env;
+    use sync::atomic::{self, Ordering};
+
     static MIN: atomic::AtomicUsize = atomic::AtomicUsize::new(0);
     match MIN.load(Ordering::SeqCst) {
         0 => {}

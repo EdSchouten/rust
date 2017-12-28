@@ -475,6 +475,7 @@ pub mod f64;
 pub mod thread;
 pub mod ascii;
 pub mod collections;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod env;
 pub mod error;
 pub mod ffi;

@@ -44,6 +44,7 @@ pub mod thread_local;
 pub mod util;
 pub mod wtf8;
 pub mod bytestring;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod process;
 
 cfg_if! {
