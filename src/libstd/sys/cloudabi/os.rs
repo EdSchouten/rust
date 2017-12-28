@@ -6,6 +6,7 @@ use libc::{self, c_char, c_int};
 use marker::PhantomData;
 use memchr;
 use ptr;
+use str;
 use vec;
 
 pub fn errno() -> i32 {
@@ -18,9 +19,12 @@ pub fn errno() -> i32 {
 }
 
 /// Gets a detailed string description for the given error number.
-pub fn error_string(_: i32) -> String {
-    // TODO(ed): Implement!
-    return String::from("TODO");
+pub fn error_string(errno: i32) -> String {
+    // cloudlibc's strerror() is guaranteed to be thread-safe. There is
+    // thus no need to use strerror_r().
+    str::from_utf8(unsafe { CStr::from_ptr(libc::strerror(errno)) }.to_bytes())
+        .unwrap()
+        .to_owned()
 }
 
 pub struct Env {
