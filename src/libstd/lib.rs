@@ -486,6 +486,7 @@ pub mod num;
 pub mod os;
 pub mod panic;
 pub mod path;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod process;
 pub mod sync;
 pub mod time;
