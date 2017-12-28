@@ -1,3 +1,5 @@
+extern crate cloudabi;
+
 use io;
 use libc;
 use mem;
@@ -18,26 +20,23 @@ pub mod time;
 pub fn init() {}
 
 pub fn decode_error_kind(errno: i32) -> io::ErrorKind {
-    match errno as libc::c_int {
-        libc::ECONNREFUSED => io::ErrorKind::ConnectionRefused,
-        libc::ECONNRESET => io::ErrorKind::ConnectionReset,
-        libc::EPERM | libc::EACCES => io::ErrorKind::PermissionDenied,
-        libc::EPIPE => io::ErrorKind::BrokenPipe,
-        libc::ENOTCONN => io::ErrorKind::NotConnected,
-        libc::ECONNABORTED => io::ErrorKind::ConnectionAborted,
-        libc::EADDRNOTAVAIL => io::ErrorKind::AddrNotAvailable,
-        libc::EADDRINUSE => io::ErrorKind::AddrInUse,
-        libc::ENOENT => io::ErrorKind::NotFound,
-        libc::EINTR => io::ErrorKind::Interrupted,
-        libc::EINVAL => io::ErrorKind::InvalidInput,
-        libc::ETIMEDOUT => io::ErrorKind::TimedOut,
-        libc::EEXIST => io::ErrorKind::AlreadyExists,
-
-        // These two constants can have the same value on some systems,
-        // but different values on others, so we can't use a match
-        // clause
-        x if x == libc::EAGAIN || x == libc::EWOULDBLOCK => io::ErrorKind::WouldBlock,
-
+    match errno {
+        x if x == cloudabi::errno::AGAIN as i32 => io::ErrorKind::WouldBlock,
+        x if x == cloudabi::errno::CONNREFUSED as i32 => io::ErrorKind::ConnectionRefused,
+        x if x == cloudabi::errno::CONNRESET as i32 => io::ErrorKind::ConnectionReset,
+        x if x == cloudabi::errno::PERM as i32 || x == cloudabi::errno::ACCES as i32 => {
+            io::ErrorKind::PermissionDenied
+        }
+        x if x == cloudabi::errno::PIPE as i32 => io::ErrorKind::BrokenPipe,
+        x if x == cloudabi::errno::NOTCONN as i32 => io::ErrorKind::NotConnected,
+        x if x == cloudabi::errno::CONNABORTED as i32 => io::ErrorKind::ConnectionAborted,
+        x if x == cloudabi::errno::ADDRNOTAVAIL as i32 => io::ErrorKind::AddrNotAvailable,
+        x if x == cloudabi::errno::ADDRINUSE as i32 => io::ErrorKind::AddrInUse,
+        x if x == cloudabi::errno::NOENT as i32 => io::ErrorKind::NotFound,
+        x if x == cloudabi::errno::INTR as i32 => io::ErrorKind::Interrupted,
+        x if x == cloudabi::errno::INVAL as i32 => io::ErrorKind::InvalidInput,
+        x if x == cloudabi::errno::TIMEDOUT as i32 => io::ErrorKind::TimedOut,
+        x if x == cloudabi::errno::EXIST as i32 => io::ErrorKind::AlreadyExists,
         _ => io::ErrorKind::Other,
     }
 }
