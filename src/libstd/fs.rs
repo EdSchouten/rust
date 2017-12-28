@@ -18,15 +18,11 @@
 #![stable(feature = "rust1", since = "1.0.0")]
 
 use fmt;
-#[cfg(not(target_os = "cloudabi"))]
 use ffi::OsString;
 use io::{self, SeekFrom, Seek, Read, Initializer, Write};
-#[cfg(not(target_os = "cloudabi"))]
 use path::{Path, PathBuf};
 use sys::fs as fs_imp;
-use sys_common::{FromInner, AsInner, IntoInner};
-#[cfg(not(target_os = "cloudabi"))]
-use sys_common::AsInnerMut;
+use sys_common::{AsInnerMut, FromInner, AsInner, IntoInner};
 use time::SystemTime;
 
 /// A reference to an open file on the filesystem.
@@ -123,7 +119,6 @@ pub struct Metadata(fs_imp::FileAttr);
 /// [`DirEntry`]: struct.DirEntry.html
 /// [`io::Result`]: ../io/type.Result.html
 /// [`Err`]: ../result/enum.Result.html#variant.Err
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 #[derive(Debug)]
 pub struct ReadDir(fs_imp::ReadDir);
@@ -135,7 +130,6 @@ pub struct ReadDir(fs_imp::ReadDir);
 /// An instance of `DirEntry` represents an entry inside of a directory on the
 /// filesystem. Each entry can be inspected via methods to learn about the full
 /// path or possibly other metadata through per-platform extension traits.
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct DirEntry(fs_imp::DirEntry);
 
@@ -183,7 +177,6 @@ pub struct DirEntry(fs_imp::DirEntry);
 ///             .create(true)
 ///             .open("foo.txt");
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[derive(Clone, Debug)]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct OpenOptions(fs_imp::OpenOptions);
@@ -196,7 +189,6 @@ pub struct OpenOptions(fs_imp::OpenOptions);
 /// `os::unix::PermissionsExt` trait.
 ///
 /// [`readonly`]: struct.Permissions.html#method.readonly
-#[cfg(not(target_os = "cloudabi"))]
 #[derive(Clone, PartialEq, Eq, Debug)]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub struct Permissions(fs_imp::FilePermissions);
@@ -212,7 +204,6 @@ pub struct FileType(fs_imp::FileType);
 /// A builder used to create directories in various manners.
 ///
 /// This builder also supports platform-specific options.
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "dir_builder", since = "1.6.0")]
 #[derive(Debug)]
 pub struct DirBuilder {
@@ -253,7 +244,6 @@ pub struct DirBuilder {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[unstable(feature = "fs_read_write", issue = "46588")]
 pub fn read<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
@@ -295,7 +285,6 @@ pub fn read<P: AsRef<Path>>(path: P) -> io::Result<Vec<u8>> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[unstable(feature = "fs_read_write", issue = "46588")]
 pub fn read_string<P: AsRef<Path>>(path: P) -> io::Result<String> {
     let mut string = String::new();
@@ -326,7 +315,6 @@ pub fn read_string<P: AsRef<Path>>(path: P) -> io::Result<String> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[unstable(feature = "fs_read_write", issue = "46588")]
 pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> io::Result<()> {
     File::create(path)?.write_all(contents.as_ref())
@@ -354,7 +342,6 @@ impl File {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn open<P: AsRef<Path>>(path: P) -> io::Result<File> {
         OpenOptions::new().read(true).open(path.as_ref())
@@ -379,7 +366,6 @@ impl File {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn create<P: AsRef<Path>>(path: P) -> io::Result<File> {
         OpenOptions::new().write(true).create(true).truncate(true).open(path.as_ref())
@@ -539,7 +525,6 @@ impl File {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "set_permissions_atomic", since = "1.16.0")]
     pub fn set_permissions(&self, perm: Permissions) -> io::Result<()> {
         self.inner.set_permissions(perm.0)
@@ -616,7 +601,6 @@ impl<'a> Seek for &'a File {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl OpenOptions {
     /// Creates a blank new set of options ready for configuration.
     ///
@@ -847,7 +831,6 @@ impl OpenOptions {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl AsInnerMut<fs_imp::OpenOptions> for OpenOptions {
     fn as_inner_mut(&mut self) -> &mut fs_imp::OpenOptions { &mut self.0 }
 }
@@ -937,7 +920,6 @@ impl Metadata {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "rust1", since = "1.0.0")]
     pub fn permissions(&self) -> Permissions {
         Permissions(self.0.perm())
@@ -1035,7 +1017,6 @@ impl Metadata {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(not(target_os = "cloudabi"))]
     #[stable(feature = "fs_time", since = "1.10.0")]
     pub fn created(&self) -> io::Result<SystemTime> {
         self.0.created().map(FromInner::from_inner)
@@ -1049,8 +1030,10 @@ impl fmt::Debug for Metadata {
             .field("file_type", &self.file_type())
             .field("is_dir", &self.is_dir())
             .field("is_file", &self.is_file())
+            .field("permissions", &self.permissions())
             .field("modified", &self.modified())
             .field("accessed", &self.accessed())
+            .field("created", &self.created())
             .finish()
     }
 }
@@ -1059,7 +1042,6 @@ impl AsInner<fs_imp::FileAttr> for Metadata {
     fn as_inner(&self) -> &fs_imp::FileAttr { &self.0 }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl Permissions {
     /// Returns whether these permissions describe a readonly (unwritable) file.
     ///
@@ -1185,19 +1167,16 @@ impl AsInner<fs_imp::FileType> for FileType {
     fn as_inner(&self) -> &fs_imp::FileType { &self.0 }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl FromInner<fs_imp::FilePermissions> for Permissions {
     fn from_inner(f: fs_imp::FilePermissions) -> Permissions {
         Permissions(f)
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl AsInner<fs_imp::FilePermissions> for Permissions {
     fn as_inner(&self) -> &fs_imp::FilePermissions { &self.0 }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 impl Iterator for ReadDir {
     type Item = io::Result<DirEntry>;
@@ -1207,7 +1186,6 @@ impl Iterator for ReadDir {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl DirEntry {
     /// Returns the full path to the file that this entry represents.
     ///
@@ -1332,7 +1310,6 @@ impl DirEntry {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "dir_entry_debug", since = "1.13.0")]
 impl fmt::Debug for DirEntry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -1342,7 +1319,6 @@ impl fmt::Debug for DirEntry {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl AsInner<fs_imp::DirEntry> for DirEntry {
     fn as_inner(&self) -> &fs_imp::DirEntry { &self.0 }
 }
@@ -1379,7 +1355,6 @@ impl AsInner<fs_imp::DirEntry> for DirEntry {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::unlink(path.as_ref())
@@ -1418,7 +1393,6 @@ pub fn remove_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
     fs_imp::stat(path.as_ref()).map(Metadata)
@@ -1453,7 +1427,6 @@ pub fn metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "symlink_metadata", since = "1.1.0")]
 pub fn symlink_metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
     fs_imp::lstat(path.as_ref()).map(Metadata)
@@ -1497,7 +1470,6 @@ pub fn symlink_metadata<P: AsRef<Path>>(path: P) -> io::Result<Metadata> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> {
     fs_imp::rename(from.as_ref(), to.as_ref())
@@ -1545,7 +1517,6 @@ pub fn rename<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<()> 
 /// fs::copy("foo.txt", "bar.txt")?;  // Copy foo.txt to bar.txt
 /// # Ok(()) }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
     fs_imp::copy(from.as_ref(), to.as_ref())
@@ -1581,7 +1552,6 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dst: Q) -> io::Result<()> {
     fs_imp::link(src.as_ref(), dst.as_ref())
@@ -1605,7 +1575,6 @@ pub fn hard_link<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dst: Q) -> io::Result<(
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 #[rustc_deprecated(since = "1.1.0",
              reason = "replaced with std::os::unix::fs::symlink and \
@@ -1643,7 +1612,6 @@ pub fn soft_link<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dst: Q) -> io::Result<(
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn read_link<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
     fs_imp::readlink(path.as_ref())
@@ -1678,7 +1646,6 @@ pub fn read_link<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "fs_canonicalize", since = "1.5.0")]
 pub fn canonicalize<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
     fs_imp::canonicalize(path.as_ref())
@@ -1712,7 +1679,6 @@ pub fn canonicalize<P: AsRef<Path>>(path: P) -> io::Result<PathBuf> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn create_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
     DirBuilder::new().create(path.as_ref())
@@ -1755,7 +1721,6 @@ pub fn create_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn create_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
     DirBuilder::new().recursive(true).create(path.as_ref())
@@ -1789,7 +1754,6 @@ pub fn create_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::rmdir(path.as_ref())
@@ -1824,7 +1788,6 @@ pub fn remove_dir<P: AsRef<Path>>(path: P) -> io::Result<()> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
     fs_imp::remove_dir_all(path.as_ref())
@@ -1878,7 +1841,6 @@ pub fn remove_dir_all<P: AsRef<Path>>(path: P) -> io::Result<()> {
 ///     Ok(())
 /// }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "rust1", since = "1.0.0")]
 pub fn read_dir<P: AsRef<Path>>(path: P) -> io::Result<ReadDir> {
     fs_imp::readdir(path.as_ref()).map(ReadDir)
@@ -1914,14 +1876,12 @@ pub fn read_dir<P: AsRef<Path>>(path: P) -> io::Result<ReadDir> {
 /// # Ok(())
 /// # }
 /// ```
-#[cfg(not(target_os = "cloudabi"))]
 #[stable(feature = "set_permissions", since = "1.1.0")]
 pub fn set_permissions<P: AsRef<Path>>(path: P, perm: Permissions)
                                        -> io::Result<()> {
     fs_imp::set_perm(path.as_ref(), perm.0)
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl DirBuilder {
     /// Creates a new set of options with default mode/security settings for all
     /// platforms and also non-recursive.
@@ -2015,14 +1975,13 @@ impl DirBuilder {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl AsInnerMut<fs_imp::DirBuilder> for DirBuilder {
     fn as_inner_mut(&mut self) -> &mut fs_imp::DirBuilder {
         &mut self.inner
     }
 }
 
-#[cfg(all(test, not(target_os = "emscripten"), not(target_os = "cloudabi")))]
+#[cfg(all(test, not(target_os = "emscripten")))]
 mod tests {
     use io::prelude::*;
 

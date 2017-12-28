@@ -52,6 +52,8 @@ cfg_if! {
         pub use sys::net;
     } else if #[cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))] {
         pub use sys::net;
+    } else if #[cfg(target_os = "cloudabi")] {
+        // No networking support on CloudABI (yet).
     } else {
         pub mod net;
     }

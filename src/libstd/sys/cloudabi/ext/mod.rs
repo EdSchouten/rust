@@ -1,6 +1,5 @@
 #![stable(feature = "rust1", since = "1.0.0")]
 
-pub mod io;
 pub mod ffi;
 
 /// A prelude for conveniently writing platform-specific code.

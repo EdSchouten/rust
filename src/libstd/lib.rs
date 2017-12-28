@@ -233,6 +233,7 @@
 #![allow(dead_code)]
 #![allow(missing_docs)]
 #![allow(non_camel_case_types)]
+#![allow(unused_imports)]
 
 // std may use features in a platform-specific way
 #![allow(unused_features)]
@@ -479,12 +480,15 @@ pub mod collections;
 pub mod env;
 pub mod error;
 pub mod ffi;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod fs;
 pub mod io;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod net;
 pub mod num;
 pub mod os;
 pub mod panic;
+#[cfg(not(target_os = "cloudabi"))]
 pub mod path;
 #[cfg(not(target_os = "cloudabi"))]
 pub mod process;
