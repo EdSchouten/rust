@@ -93,23 +93,25 @@ impl Thread {
         // CloudABI has no way to set a thread name.
     }
 
-    pub fn sleep(_: Duration) {
-        // TODO(ed): Implement!
-        /*
+    pub fn sleep(dur: Duration) {
         unsafe {
             let subscription = cloudabi::subscription {
                 type_: cloudabi::eventtype::CLOCK,
                 union: cloudabi::subscription_union {
                     clock: cloudabi::subscription_clock {
-                        clock_id: cloudabi::clockid::REALTIME,
+                        clock_id: cloudabi::clockid::MONOTONIC,
                         timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
                         ..mem::zeroed()
-                    }
+                    },
                 },
                 ..mem::zeroed()
             };
+            let mut event: cloudabi::event = mem::uninitialized();
+            let mut nevents: usize = mem::uninitialized();
+            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(event.error, cloudabi::errno::SUCCESS);
         }
-        */
     }
 
     pub fn join(self) {
