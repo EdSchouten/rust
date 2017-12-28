@@ -30,7 +30,7 @@ pub use panicking::{begin_panic, begin_panic_fmt, update_panic_count};
 // the real work.
 #[cfg(not(any(test, stage0)))]
 fn lang_start_internal(main: &(Fn() -> i32 + Sync + ::panic::RefUnwindSafe),
-                       argc: isize, argv: *const *const u8) -> isize {
+                       _: isize, _: *const *const u8) -> isize {
     use panic;
     use sys;
     use sys_common;
