@@ -9,7 +9,6 @@ pub mod memchr;
 pub mod mutex;
 pub mod os;
 pub mod os_str;
-pub mod pipe;
 pub mod rwlock;
 pub mod stack_overflow;
 pub mod stdio;
