@@ -19,7 +19,8 @@ fn dur2intervals(dur: &Duration) -> u64 {
 impl Instant {
     pub fn now() -> Instant {
         let mut t: cloudabi::timestamp = 0;
-        unsafe { cloudabi::clock_time_get(cloudabi::clockid::MONOTONIC, 0, &mut t) };
+        let ret = unsafe { cloudabi::clock_time_get(cloudabi::clockid::MONOTONIC, 0, &mut t) };
+        assert_eq!(ret, cloudabi::errno::SUCCESS);
         Instant { t: t }
     }
 
@@ -55,7 +56,8 @@ pub struct SystemTime {
 impl SystemTime {
     pub fn now() -> SystemTime {
         let mut t: cloudabi::timestamp = 0;
-        unsafe { cloudabi::clock_time_get(cloudabi::clockid::REALTIME, 0, &mut t) };
+        let ret = unsafe { cloudabi::clock_time_get(cloudabi::clockid::REALTIME, 0, &mut t) };
+        assert_eq!(ret, cloudabi::errno::SUCCESS);
         SystemTime { t: t }
     }
 
