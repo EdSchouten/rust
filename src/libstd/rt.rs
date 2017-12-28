@@ -36,6 +36,7 @@ fn lang_start_internal(main: &(Fn() -> i32 + Sync + ::panic::RefUnwindSafe),
     use sys_common;
     use sys_common::thread_info;
     use thread::Thread;
+    #[cfg(not(feature = "backtrace"))]
 
     sys::init();
 
@@ -77,7 +78,7 @@ fn lang_start<T: ::termination::Termination + 'static>
 
 #[cfg(all(not(test), stage0))]
 #[lang = "start"]
-fn lang_start(main: fn(), _: isize, _: *const *const u8) -> isize {
+fn lang_start(main: fn(), argc: isize, argv: *const *const u8) -> isize {
     use panic;
     use sys;
     use sys_common;
@@ -100,7 +101,6 @@ fn lang_start(main: fn(), _: isize, _: *const *const u8) -> isize {
         thread_info::set(main_guard, thread);
 
         // Store our args if necessary in a squirreled away location
-        #[cfg(not(target_os = "cloudabi"))]
         sys::args::init(argc, argv);
 
         // Let's run some code!
