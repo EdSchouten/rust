@@ -113,7 +113,6 @@ macro_rules! rtabort {
 pub fn cleanup() {
     static CLEANUP: Once = Once::new();
     CLEANUP.call_once(|| unsafe {
-        #[cfg(not(target_os = "cloudabi"))]
         sys::args::cleanup();
         sys::stack_overflow::cleanup();
         at_exit_imp::cleanup();

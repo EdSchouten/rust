@@ -4,6 +4,7 @@ use io;
 use libc;
 use mem;
 
+pub mod args;
 pub mod cmath;
 pub mod condvar;
 pub mod memchr;
