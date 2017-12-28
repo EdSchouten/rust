@@ -88,12 +88,79 @@ impl RWLock {
     }
 
     pub unsafe fn read_unlock(&self) {
-        // TODO(ed): Implement!
+        // Perform a read unlock. We can do this in userspace, except when
+        // other threads are blocked and we are performing the last unlock.
+        // In that case, call into the kernel.
+        //
+        // Other threads may attempt to increment the read lock count,
+        // meaning that the call into the kernel could be spurious. To
+        // prevent this from happening, upgrade to a write lock first. This
+        // allows us to call into the kernel, having the guarantee that the
+        // lock value will not change in the meantime.
+        assert!(RDLOCKS_ACQUIRED > 0);
+        let mut old = 1;
+        loop {
+            let lock = self.lock.get();
+            if old == 1 | cloudabi::LOCK_KERNEL_MANAGED.0 {
+                // Last read lock while threads are waiting. Attempt to upgrade
+                // to a write lock before calling into the kernel to unlock.
+                if let Err(cur) = (*lock).compare_exchange_weak(
+                    old,
+                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                        | cloudabi::LOCK_KERNEL_MANAGED.0,
+                    Ordering::Acquire,
+                    Ordering::Relaxed,
+                ) {
+                    old = cur;
+                } else {
+                    // Call into the kernel to unlock.
+                    let ret = cloudabi::lock_unlock(
+                        lock as *mut cloudabi::lock,
+                        cloudabi::scope::PRIVATE,
+                    );
+                    assert_eq!(ret, cloudabi::errno::SUCCESS);
+                    break;
+                }
+            } else {
+                // No threads waiting or not the last read lock. Just decrement
+                // the read lock count.
+                assert_ne!(old & !cloudabi::LOCK_KERNEL_MANAGED.0, 0);
+                assert_eq!(old & cloudabi::LOCK_WRLOCKED.0, 0);
+                if let Err(cur) = (*lock).compare_exchange_weak(
+                    old,
+                    old - 1,
+                    Ordering::Acquire,
+                    Ordering::Relaxed,
+                ) {
+                    old = cur;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        RDLOCKS_ACQUIRED -= 1;
     }
 
     pub unsafe fn try_write(&self) -> bool {
-        // TODO(ed): Implement!
-        false
+        // Attempt to acquire the lock.
+        let lock = self.lock.get();
+        if let Err(old) = (*lock).compare_exchange(
+            cloudabi::LOCK_UNLOCKED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            Ordering::Acquire,
+            Ordering::Relaxed,
+        ) {
+            // Failure. Crash upon recursive acquisition.
+            assert_ne!(
+                old & !cloudabi::LOCK_KERNEL_MANAGED.0,
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            );
+            false
+        } else {
+            // Success.
+            true
+        }
     }
 
     pub unsafe fn write(&self) {
@@ -119,7 +186,26 @@ impl RWLock {
     }
 
     pub unsafe fn write_unlock(&self) {
-        // TODO(ed): Implement!
+        let lock = self.lock.get();
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+        );
+
+        if !(*lock)
+            .compare_exchange(
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                cloudabi::LOCK_UNLOCKED.0,
+                Ordering::Release,
+                Ordering::Relaxed,
+            )
+            .is_ok()
+        {
+            // Lock is managed by kernelspace. Call into the kernel
+            // to unblock waiting threads.
+            let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+        }
     }
 
     pub unsafe fn destroy(&self) {
