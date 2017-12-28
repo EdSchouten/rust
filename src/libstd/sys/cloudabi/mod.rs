@@ -1,4 +1,4 @@
-use io::{self, ErrorKind};
+use io;
 use libc;
 use mem;
 
@@ -17,28 +17,28 @@ pub mod time;
 
 pub fn init() {}
 
-pub fn decode_error_kind(errno: i32) -> ErrorKind {
+pub fn decode_error_kind(errno: i32) -> io::ErrorKind {
     match errno as libc::c_int {
-        libc::ECONNREFUSED => ErrorKind::ConnectionRefused,
-        libc::ECONNRESET => ErrorKind::ConnectionReset,
-        libc::EPERM | libc::EACCES => ErrorKind::PermissionDenied,
-        libc::EPIPE => ErrorKind::BrokenPipe,
-        libc::ENOTCONN => ErrorKind::NotConnected,
-        libc::ECONNABORTED => ErrorKind::ConnectionAborted,
-        libc::EADDRNOTAVAIL => ErrorKind::AddrNotAvailable,
-        libc::EADDRINUSE => ErrorKind::AddrInUse,
-        libc::ENOENT => ErrorKind::NotFound,
-        libc::EINTR => ErrorKind::Interrupted,
-        libc::EINVAL => ErrorKind::InvalidInput,
-        libc::ETIMEDOUT => ErrorKind::TimedOut,
-        libc::EEXIST => ErrorKind::AlreadyExists,
+        libc::ECONNREFUSED => io::ErrorKind::ConnectionRefused,
+        libc::ECONNRESET => io::ErrorKind::ConnectionReset,
+        libc::EPERM | libc::EACCES => io::ErrorKind::PermissionDenied,
+        libc::EPIPE => io::ErrorKind::BrokenPipe,
+        libc::ENOTCONN => io::ErrorKind::NotConnected,
+        libc::ECONNABORTED => io::ErrorKind::ConnectionAborted,
+        libc::EADDRNOTAVAIL => io::ErrorKind::AddrNotAvailable,
+        libc::EADDRINUSE => io::ErrorKind::AddrInUse,
+        libc::ENOENT => io::ErrorKind::NotFound,
+        libc::EINTR => io::ErrorKind::Interrupted,
+        libc::EINVAL => io::ErrorKind::InvalidInput,
+        libc::ETIMEDOUT => io::ErrorKind::TimedOut,
+        libc::EEXIST => io::ErrorKind::AlreadyExists,
 
         // These two constants can have the same value on some systems,
         // but different values on others, so we can't use a match
         // clause
-        x if x == libc::EAGAIN || x == libc::EWOULDBLOCK => ErrorKind::WouldBlock,
+        x if x == libc::EAGAIN || x == libc::EWOULDBLOCK => io::ErrorKind::WouldBlock,
 
-        _ => ErrorKind::Other,
+        _ => io::ErrorKind::Other,
     }
 }
 
