@@ -232,7 +232,6 @@
 #![deny(warnings)]
 #![allow(dead_code)]
 #![allow(missing_docs)]
-#![allow(non_camel_case_types)]
 #![allow(unused_imports)]
 
 // std may use features in a platform-specific way
