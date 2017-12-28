@@ -46,7 +46,8 @@ impl RWLock {
                 // Another thread already has a write lock.
                 assert_ne!(
                     old & !cloudabi::LOCK_KERNEL_MANAGED.0,
-                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                    "Attempted to acquire a read lock while holding a write lock"
                 );
                 return false;
             } else if (old & cloudabi::LOCK_KERNEL_MANAGED.0) != 0 && RDLOCKS_ACQUIRED == 0 {
@@ -80,8 +81,12 @@ impl RWLock {
             let mut event: cloudabi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
             let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
-            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to acquire read lock");
+            assert_eq!(
+                event.error,
+                cloudabi::errno::SUCCESS,
+                "Failed to acquire read lock"
+            );
 
             RDLOCKS_ACQUIRED += 1;
         }
@@ -97,7 +102,7 @@ impl RWLock {
         // prevent this from happening, upgrade to a write lock first. This
         // allows us to call into the kernel, having the guarantee that the
         // lock value will not change in the meantime.
-        assert!(RDLOCKS_ACQUIRED > 0);
+        assert!(RDLOCKS_ACQUIRED > 0, "Bad lock count");
         let mut old = 1;
         loop {
             let lock = self.lock.get();
@@ -118,14 +123,26 @@ impl RWLock {
                         lock as *mut cloudabi::lock,
                         cloudabi::scope::PRIVATE,
                     );
-                    assert_eq!(ret, cloudabi::errno::SUCCESS);
+                    assert_eq!(
+                        ret,
+                        cloudabi::errno::SUCCESS,
+                        "Failed to write unlock a rwlock"
+                    );
                     break;
                 }
             } else {
                 // No threads waiting or not the last read lock. Just decrement
                 // the read lock count.
-                assert_ne!(old & !cloudabi::LOCK_KERNEL_MANAGED.0, 0);
-                assert_eq!(old & cloudabi::LOCK_WRLOCKED.0, 0);
+                assert_ne!(
+                    old & !cloudabi::LOCK_KERNEL_MANAGED.0,
+                    0,
+                    "This rwlock is not locked"
+                );
+                assert_eq!(
+                    old & cloudabi::LOCK_WRLOCKED.0,
+                    0,
+                    "Attempted to read-unlock a write-locked rwlock"
+                );
                 if let Err(cur) = (*lock).compare_exchange_weak(
                     old,
                     old - 1,
@@ -154,7 +171,8 @@ impl RWLock {
             // Failure. Crash upon recursive acquisition.
             assert_ne!(
                 old & !cloudabi::LOCK_KERNEL_MANAGED.0,
-                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+                "Attempted to recursive write-lock a rwlock",
             );
             false
         } else {
@@ -180,8 +198,16 @@ impl RWLock {
             let mut event: cloudabi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
             let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
-            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+            assert_eq!(
+                ret,
+                cloudabi::errno::SUCCESS,
+                "Failed to acquire write lock"
+            );
+            assert_eq!(
+                event.error,
+                cloudabi::errno::SUCCESS,
+                "Failed to acquire write lock"
+            );
         }
     }
 
@@ -189,7 +215,8 @@ impl RWLock {
         let lock = self.lock.get();
         assert_eq!(
             (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            "This rwlock is not write-locked by this thread"
         );
 
         if !(*lock)
@@ -204,12 +231,20 @@ impl RWLock {
             // Lock is managed by kernelspace. Call into the kernel
             // to unblock waiting threads.
             let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(
+                ret,
+                cloudabi::errno::SUCCESS,
+                "Failed to write unlock a rwlock"
+            );
         }
     }
 
     pub unsafe fn destroy(&self) {
         let lock = self.lock.get();
-        assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
+        assert_eq!(
+            (*lock).load(Ordering::Relaxed),
+            cloudabi::LOCK_UNLOCKED.0,
+            "Attempted to destroy locked rwlock"
+        );
     }
 }
