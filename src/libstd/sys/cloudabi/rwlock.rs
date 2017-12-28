@@ -11,7 +11,16 @@
 extern crate cloudabi;
 
 use cell::UnsafeCell;
+use mem;
 use sync::atomic::{AtomicU32, Ordering};
+
+extern "C" {
+    #[thread_local]
+    static __pthread_thread_id: cloudabi::tid;
+}
+
+#[thread_local]
+static RDLOCKS_ACQUIRED: u32 = 0;
 
 pub struct RWLock {
     lock: UnsafeCell<AtomicU32>,
@@ -28,12 +37,54 @@ impl RWLock {
     }
 
     pub unsafe fn try_read(&self) -> bool {
-        // TODO(ed): Implement!
-        false
+        let lock = self.lock.get();
+        let mut old = cloudabi::LOCK_UNLOCKED.0;
+        while let Err(cur) =
+            (*lock).compare_exchange_weak(old, old + 1, Ordering::Acquire, Ordering::Relaxed)
+        {
+            if (cur & cloudabi::LOCK_WRLOCKED.0) != 0 {
+                // Another thread already has a write lock.
+                assert_ne!(
+                    old & !cloudabi::LOCK_KERNEL_MANAGED.0,
+                    __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                );
+                return false;
+            } else if (old & cloudabi::LOCK_KERNEL_MANAGED.0) != 0 && RDLOCKS_ACQUIRED == 0 {
+                // Lock has threads waiting for the lock. Only acquire
+                // the lock if we have already acquired read locks. In
+                // that case, it is justified to acquire this lock to
+                // prevent a deadlock.
+                return false;
+            }
+            old = cur;
+        }
+
+        RDLOCKS_ACQUIRED += 1;
+        true
     }
 
     pub unsafe fn read(&self) {
-        // TODO(ed): Implement!
+        if !self.try_read() {
+            // Call into the kernel to acquire a read lock.
+            let lock = self.lock.get();
+            let subscription = cloudabi::subscription {
+                type_: cloudabi::eventtype::LOCK_RDLOCK,
+                union: cloudabi::subscription_union {
+                    lock: cloudabi::subscription_lock {
+                        lock: lock as *mut cloudabi::lock,
+                        lock_scope: cloudabi::scope::PRIVATE,
+                    },
+                },
+                ..mem::zeroed()
+            };
+            let mut event: cloudabi::event = mem::uninitialized();
+            let mut nevents: usize = mem::uninitialized();
+            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+
+            RDLOCKS_ACQUIRED += 1;
+        }
     }
 
     pub unsafe fn read_unlock(&self) {
@@ -46,7 +97,25 @@ impl RWLock {
     }
 
     pub unsafe fn write(&self) {
-        // TODO(ed): Implement!
+        if !self.try_write() {
+            // Call into the kernel to acquire a write lock.
+            let lock = self.lock.get();
+            let subscription = cloudabi::subscription {
+                type_: cloudabi::eventtype::LOCK_WRLOCK,
+                union: cloudabi::subscription_union {
+                    lock: cloudabi::subscription_lock {
+                        lock: lock as *mut cloudabi::lock,
+                        lock_scope: cloudabi::scope::PRIVATE,
+                    },
+                },
+                ..mem::zeroed()
+            };
+            let mut event: cloudabi::event = mem::uninitialized();
+            let mut nevents: usize = mem::uninitialized();
+            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+        }
     }
 
     pub unsafe fn write_unlock(&self) {
