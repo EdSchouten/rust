@@ -1,5 +1,6 @@
 use io::{self, ErrorKind};
 use libc;
+use mem;
 
 pub mod cmath;
 pub mod condvar;
@@ -81,7 +82,10 @@ pub unsafe fn abort_internal() -> ! {
 
 pub use libc::strlen;
 
-// TODO(ed): Use arc4random_buf().
 pub fn hashmap_random_keys() -> (u64, u64) {
-    (1, 2)
+    unsafe {
+        let mut v = mem::uninitialized();
+        libc::arc4random_buf(&mut v as *mut _ as *mut libc::c_void, mem::size_of_val(&v));
+        v
+    }
 }
