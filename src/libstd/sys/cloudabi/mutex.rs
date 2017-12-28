@@ -118,7 +118,7 @@ impl Mutex {
 
 pub struct ReentrantMutex {
     lock: UnsafeCell<AtomicU32>,
-    recursion: u32,
+    recursion: UnsafeCell<u32>,
 }
 
 impl ReentrantMutex {
@@ -128,16 +128,59 @@ impl ReentrantMutex {
 
     pub unsafe fn init(&mut self) {
         self.lock = UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0));
-        self.recursion = 0;
+        self.recursion = UnsafeCell::new(0);
     }
 
     pub unsafe fn try_lock(&self) -> bool {
-        // TODO(ed): Implement!
-        false
+        // Attempt to acquire the lock.
+        let lock = self.lock.get();
+        let recursion = self.recursion.get();
+        match (*lock).compare_exchange(
+            cloudabi::LOCK_UNLOCKED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            Ordering::Acquire,
+            Ordering::Relaxed,
+        ) {
+            Ok(_) => {
+                // Success.
+                assert_eq!(*recursion, 0);
+                true
+            }
+            Err(old) => {
+                // If we fail to acquire the lock, it may be the case
+                // that we've already acquired it and may need to recurse.
+                if old & !cloudabi::LOCK_KERNEL_MANAGED.0
+                    == __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
+                {
+                    *recursion += 1;
+                    true
+                } else {
+                    false
+                }
+            }
+        }
     }
 
     pub unsafe fn lock(&self) {
-        // TODO(ed): Implement!
+        if !self.try_lock() {
+            // Call into the kernel to acquire a write lock.
+            let lock = self.lock.get();
+            let subscription = cloudabi::subscription {
+                type_: cloudabi::eventtype::LOCK_WRLOCK,
+                union: cloudabi::subscription_union {
+                    lock: cloudabi::subscription_lock {
+                        lock: lock as *mut cloudabi::lock,
+                        lock_scope: cloudabi::scope::PRIVATE,
+                    },
+                },
+                ..mem::zeroed()
+            };
+            let mut event: cloudabi::event = mem::uninitialized();
+            let mut nevents: usize = mem::uninitialized();
+            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, cloudabi::errno::SUCCESS);
+            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+        }
     }
 
     pub unsafe fn unlock(&self) {
@@ -146,7 +189,8 @@ impl ReentrantMutex {
 
     pub unsafe fn destroy(&self) {
         let lock = self.lock.get();
+        let recursion = self.recursion.get();
         assert_eq!((*lock).load(Ordering::Relaxed), cloudabi::LOCK_UNLOCKED.0);
-        assert_eq!(self.recursion, 0);
+        assert_eq!(*recursion, 0);
     }
 }
