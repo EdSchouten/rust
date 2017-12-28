@@ -20,7 +20,7 @@ extern "C" {
 }
 
 #[thread_local]
-static RDLOCKS_ACQUIRED: u32 = 0;
+static mut RDLOCKS_ACQUIRED: u32 = 0;
 
 pub struct RWLock {
     lock: UnsafeCell<AtomicU32>,
