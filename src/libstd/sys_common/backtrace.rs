@@ -11,12 +11,9 @@
 /// Common code for printing the backtrace in the same way across the different
 /// supported platforms.
 
-use env;
 use io::prelude::*;
 use io;
 use str;
-use sync::atomic::{self, Ordering};
-use path::{self, Path};
 use sys::mutex::Mutex;
 use ptr;
 
@@ -144,7 +141,11 @@ pub enum PrintFormat {
 
 // For now logging is turned off by default, and this function checks to see
 // whether the magical environment variable is present to see if it's turned on.
+#[cfg(not(target_os = "cloudabi"))]
 pub fn log_enabled() -> Option<PrintFormat> {
+    use env;
+    use sync::atomic::{self, Ordering};
+
     static ENABLED: atomic::AtomicIsize = atomic::AtomicIsize::new(0);
     match ENABLED.load(Ordering::SeqCst) {
         0 => {},
@@ -169,6 +170,13 @@ pub fn log_enabled() -> Option<PrintFormat> {
         None => 1,
     }, Ordering::SeqCst);
     val
+}
+
+// No way to access environment variables on CloudABI. Always enable
+// stack traces on this platform.
+#[cfg(target_os = "cloudabi")]
+pub fn log_enabled() -> Option<PrintFormat> {
+    Some(PrintFormat::Full)
 }
 
 /// Print the symbol of the backtrace frame.
@@ -215,23 +223,7 @@ fn output_fileline(w: &mut Write,
     }
 
     let file = str::from_utf8(file).unwrap_or("<unknown>");
-    let file_path = Path::new(file);
-    let mut already_printed = false;
-    if format == PrintFormat::Short && file_path.is_absolute() {
-        if let Ok(cwd) = env::current_dir() {
-            if let Ok(stripped) = file_path.strip_prefix(&cwd) {
-                if let Some(s) = stripped.to_str() {
-                    write!(w, "  at .{}{}:{}", path::MAIN_SEPARATOR, s, line)?;
-                    already_printed = true;
-                }
-            }
-        }
-    }
-    if !already_printed {
-        write!(w, "  at {}:{}", file, line)?;
-    }
-
-    w.write_all(b"\n")
+    write!(w, "  at {}:{}\n", file, line)
 }
 
 
