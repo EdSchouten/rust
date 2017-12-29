@@ -76,11 +76,11 @@ fn main() {
         println!("cargo:rustc-link-lib=fdio");
         println!("cargo:rustc-link-lib=launchpad"); // for std::process
     } else if target.contains("cloudabi") {
-        println!("cargo:rustc-link-lib=c");
-        println!("cargo:rustc-link-lib=compiler_rt");
         if cfg!(feature = "backtrace") {
             println!("cargo:rustc-link-lib=unwind");
         }
+        println!("cargo:rustc-link-lib=c");
+        println!("cargo:rustc-link-lib=compiler_rt");
     }
 }
 
