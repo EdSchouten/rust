@@ -757,7 +757,7 @@ impl fmt::Debug for OsStr {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
+#[allow(dead_code)]
 impl OsStr {
     pub(crate) fn display(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(&self.inner, formatter)
