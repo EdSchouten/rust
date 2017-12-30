@@ -24,6 +24,8 @@ pub unsafe fn start_thread(main: *mut u8) {
 
 #[cfg(target_os = "cloudabi")]
 pub fn min_stack() -> usize {
+    // CloudABI does not provide environment variables. For now, always
+    // use the default value.
     imp::DEFAULT_MIN_STACK_SIZE
 }
 
