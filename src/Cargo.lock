@@ -1356,6 +1356,7 @@ dependencies = [
 name = "panic_abort"
 version = "0.0.0"
 dependencies = [
+ "cloudabi 0.0.0",
  "core 0.0.0",
  "libc 0.0.0",
 ]
