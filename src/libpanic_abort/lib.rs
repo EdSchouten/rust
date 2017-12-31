@@ -59,6 +59,13 @@ pub unsafe extern fn __rust_start_panic(_data: usize, _vtable: usize) -> u32 {
         libc::abort();
     }
 
+    #[cfg(target_os = "cloudabi")]
+    unsafe fn abort() -> ! {
+        extern crate cloudabi;
+        cloudabi::proc_raise(cloudabi::signal::ABRT);
+        cloudabi::proc_exit(1);
+    }
+
     #[cfg(any(target_os = "redox",
               windows,
               all(target_arch = "wasm32", not(target_os = "emscripten"))))]
