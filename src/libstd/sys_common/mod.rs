@@ -60,7 +60,7 @@ cfg_if! {
 }
 
 #[cfg(feature = "backtrace")]
-#[cfg(any(all(unix, not(any(target_os = "cloudabi",  target_os = "emscripten"))),
+#[cfg(any(all(unix, not(target_os = "emscripten")),
           all(windows, target_env = "gnu"),
           target_os = "redox"))]
 pub mod gnu;
