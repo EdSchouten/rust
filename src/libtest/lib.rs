@@ -1115,6 +1115,8 @@ pub fn run_tests<F>(opts: &TestOpts, tests: Vec<TestDescAndFn>, mut callback: F)
 #[cfg(not(target_os = "cloudabi"))]
 #[allow(deprecated)]
 fn get_concurrency() -> usize {
+    use std::env;
+
     return match env::var("RUST_TEST_THREADS") {
         Ok(s) => {
             let opt_n: Option<usize> = s.parse().ok();
