@@ -8,15 +8,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-struct Bar<'a> {
-    s: &'a String
-}
+// Test that the :lifetime macro fragment cannot be used when macro_lifetime_matcher
+// feature gate is not used.
 
-impl<'a> Bar<'a> {
-    fn f(&mut self) {
-        self.s.push('x');
-        //~^ ERROR cannot borrow borrowed content `*self.s` of immutable binding as mutable
-    }
-}
+macro_rules! m { ($lt:lifetime) => {} }
+//~^ ERROR :lifetime fragment specifier is experimental and subject to change
 
-fn main() {}
+fn main() {
+    m!('a);
+}
