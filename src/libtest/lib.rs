@@ -36,14 +36,14 @@
 
 #![feature(asm)]
 #![feature(fnbox)]
-#![cfg_attr(unix, feature(libc))]
+#![cfg_attr(any(unix, target_os = "cloudabi"), feature(libc))]
 #![feature(set_stdio)]
 #![feature(panic_unwind)]
 #![feature(staged_api)]
 
 extern crate getopts;
 extern crate term;
-#[cfg(unix)]
+#[cfg(any(unix, target_os = "cloudabi"))]
 extern crate libc;
 extern crate panic_unwind;
 
@@ -60,13 +60,10 @@ use std::any::Any;
 use std::boxed::FnBox;
 use std::cmp;
 use std::collections::BTreeMap;
-use std::env;
 use std::fmt;
-use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::iter::repeat;
-use std::path::PathBuf;
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -203,13 +200,6 @@ pub struct TestDesc {
     pub allow_fail: bool,
 }
 
-#[derive(Clone)]
-pub struct TestPaths {
-    pub file: PathBuf,         // e.g., compile-test/foo/bar/baz.rs
-    pub base: PathBuf,         // e.g., compile-test, auxiliary
-    pub relative_dir: PathBuf, // e.g., foo/bar
-}
-
 #[derive(Debug)]
 pub struct TestDescAndFn {
     pub desc: TestDesc,
@@ -266,7 +256,7 @@ pub fn test_main(args: &[String], tests: Vec<TestDescAndFn>, options: Options) {
     } else {
         match run_tests_console(&opts, tests) {
             Ok(true) => {}
-            Ok(false) => std::process::exit(101),
+            Ok(false) => panic!("test returned false"),
             Err(e) => panic!("io error when running tests: {:?}", e),
         }
     }
@@ -280,7 +270,7 @@ pub fn test_main(args: &[String], tests: Vec<TestDescAndFn>, options: Options) {
 // semantics into parallel test runners, which in turn requires a Vec<>
 // rather than a &[].
 pub fn test_main_static(tests: &[TestDescAndFn]) {
-    let args = env::args().collect::<Vec<_>>();
+    let args = [];
     let owned_tests = tests.iter()
                            .map(|t| {
                                match t.testfn {
@@ -318,7 +308,6 @@ pub struct TestOpts {
     pub run_ignored: bool,
     pub run_tests: bool,
     pub bench_benchmarks: bool,
-    pub logfile: Option<PathBuf>,
     pub nocapture: bool,
     pub color: ColorConfig,
     pub quiet: bool,
@@ -432,19 +421,10 @@ pub fn parse_opts(args: &[String]) -> Option<OptRes> {
     let exact = matches.opt_present("exact");
     let list = matches.opt_present("list");
 
-    let logfile = matches.opt_str("logfile");
-    let logfile = logfile.map(|s| PathBuf::from(&s));
-
     let bench_benchmarks = matches.opt_present("bench");
     let run_tests = !bench_benchmarks || matches.opt_present("test");
 
-    let mut nocapture = matches.opt_present("nocapture");
-    if !nocapture {
-        nocapture = match env::var("RUST_TEST_NOCAPTURE") {
-            Ok(val) => &val != "0",
-            Err(_) => false
-        };
-    }
+    let nocapture = matches.opt_present("nocapture");
 
     let test_threads = match matches.opt_str("test-threads") {
         Some(n_str) =>
@@ -479,7 +459,6 @@ pub fn parse_opts(args: &[String]) -> Option<OptRes> {
         run_ignored,
         run_tests,
         bench_benchmarks,
-        logfile,
         nocapture,
         color,
         quiet,
@@ -515,7 +494,6 @@ enum OutputLocation<T> {
 }
 
 struct ConsoleTestState<T> {
-    log_out: Option<File>,
     out: OutputLocation<T>,
     use_color: bool,
     quiet: bool,
@@ -535,10 +513,6 @@ struct ConsoleTestState<T> {
 
 impl<T: Write> ConsoleTestState<T> {
     pub fn new(opts: &TestOpts, _: Option<T>) -> io::Result<ConsoleTestState<io::Stdout>> {
-        let log_out = match opts.logfile {
-            Some(ref path) => Some(File::create(path)?),
-            None => None,
-        };
         let out = match term::stdout() {
             None => Raw(io::stdout()),
             Some(t) => Pretty(t),
@@ -546,7 +520,6 @@ impl<T: Write> ConsoleTestState<T> {
 
         Ok(ConsoleTestState {
             out,
-            log_out,
             use_color: use_color(opts),
             quiet: opts.quiet,
             total: 0,
@@ -672,12 +645,8 @@ impl<T: Write> ConsoleTestState<T> {
                                   TEST_WARN_TIMEOUT_S))
     }
 
-    pub fn write_log<S: AsRef<str>>(&mut self, msg: S) -> io::Result<()> {
-        let msg = msg.as_ref();
-        match self.log_out {
-            None => Ok(()),
-            Some(ref mut o) => o.write_all(msg.as_bytes()),
-        }
+    pub fn write_log<S: AsRef<str>>(&mut self, _: S) -> io::Result<()> {
+        Ok(())
     }
 
     pub fn write_log_result(&mut self, test: &TestDesc, result: &TestResult) -> io::Result<()> {
@@ -984,9 +953,9 @@ fn use_color(opts: &TestOpts) -> bool {
     }
 }
 
-#[cfg(target_os = "redox")]
+#[cfg(any(target_os = "cloudabi", target_os = "redox"))]
 fn stdout_isatty() -> bool {
-    // FIXME: Implement isatty on Redox
+    // FIXME: Implement isatty.
     false
 }
 #[cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))]
@@ -1146,21 +1115,10 @@ pub fn run_tests<F>(opts: &TestOpts, tests: Vec<TestDescAndFn>, mut callback: F)
     Ok(())
 }
 
+#[cfg(not(target_os = "cloudabi"))]
 #[allow(deprecated)]
 fn get_concurrency() -> usize {
-    return match env::var("RUST_TEST_THREADS") {
-        Ok(s) => {
-            let opt_n: Option<usize> = s.parse().ok();
-            match opt_n {
-                Some(n) if n > 0 => n,
-                _ => {
-                    panic!("RUST_TEST_THREADS is `{}`, should be a positive integer.",
-                           s)
-                }
-            }
-        }
-        Err(..) => num_cpus(),
-    };
+    return num_cpus();
 
     #[cfg(windows)]
     #[allow(bad_style)]
@@ -1268,6 +1226,12 @@ fn get_concurrency() -> usize {
         // FIXME: implement
         1
     }
+}
+
+#[cfg(target_os = "cloudabi")]
+#[allow(deprecated)]
+fn get_concurrency() -> usize {
+    unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as usize }
 }
 
 pub fn filter_tests(opts: &TestOpts, tests: Vec<TestDescAndFn>) -> Vec<TestDescAndFn> {
