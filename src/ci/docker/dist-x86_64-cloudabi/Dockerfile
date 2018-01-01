@@ -30,6 +30,9 @@ ENV \
 
 ENV TARGETS=x86_64-unknown-cloudabi
 
-ENV RUST_CONFIGURE_ARGS --target=$TARGETS
+ENV RUST_CONFIGURE_ARGS --target=$TARGETS --disable-jemalloc
 
 ENV SCRIPT python2.7 /checkout/x.py test --target $TARGETS
+
+# TODO(ed): Remove this again!
+ENV RUST_BACKTRACE 1
