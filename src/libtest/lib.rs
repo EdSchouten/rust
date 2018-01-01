@@ -1115,7 +1115,19 @@ pub fn run_tests<F>(opts: &TestOpts, tests: Vec<TestDescAndFn>, mut callback: F)
 #[cfg(not(target_os = "cloudabi"))]
 #[allow(deprecated)]
 fn get_concurrency() -> usize {
-    return num_cpus();
+    return match env::var("RUST_TEST_THREADS") {
+        Ok(s) => {
+            let opt_n: Option<usize> = s.parse().ok();
+            match opt_n {
+                Some(n) if n > 0 => n,
+                _ => {
+                    panic!("RUST_TEST_THREADS is `{}`, should be a positive integer.",
+                           s)
+                }
+            }
+        }
+        Err(..) => num_cpus(),
+    };
 
     #[cfg(windows)]
     #[allow(bad_style)]
