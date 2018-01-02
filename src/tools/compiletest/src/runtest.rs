@@ -190,6 +190,10 @@ impl<'test> TestCx<'test> {
             self.fatal_proc_rec("compilation failed!", &proc_res);
         }
 
+        if self.config.target.contains("cloudabi") {
+            return;
+        }
+
         let proc_res = self.exec_compiled_test();
 
         // The value our Makefile configures valgrind to return on failure
@@ -236,6 +240,10 @@ impl<'test> TestCx<'test> {
             "run-pass tests with expected warnings should be moved to ui/"
         );
 
+        if self.config.target.contains("cloudabi") {
+            return;
+        }
+
         let proc_res = self.exec_compiled_test();
 
         if !proc_res.status.success() {
@@ -255,6 +263,10 @@ impl<'test> TestCx<'test> {
 
         if !proc_res.status.success() {
             self.fatal_proc_rec("compilation failed!", &proc_res);
+        }
+
+        if self.config.target.contains("cloudabi") {
+            return;
         }
 
         let mut new_config = self.config.clone();
@@ -2432,6 +2444,10 @@ impl<'test> TestCx<'test> {
             );
         }
 
+        if self.config.target.contains("cloudabi") {
+            return;
+        }
+
         let expected_errors = errors::load_errors(&self.testpaths.file, self.revision);
 
         if self.props.run_pass {
@@ -2457,6 +2473,10 @@ impl<'test> TestCx<'test> {
 
         if !proc_res.status.success() {
             self.fatal_proc_rec("compilation failed!", &proc_res);
+        }
+
+        if self.config.target.contains("cloudabi") {
+            return;
         }
 
         let proc_res = self.exec_compiled_test();
