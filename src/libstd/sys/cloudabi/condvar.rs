@@ -106,8 +106,68 @@ impl Condvar {
         );
     }
 
-    pub unsafe fn wait_timeout(&self, _: &Mutex, _: Duration) -> bool {
-        // TODO(ed): Implement!
+    pub unsafe fn wait_timeout(&self, mutex: &Mutex, dur: Duration) -> bool {
+        let mutex = mutex::raw(mutex);
+        assert_eq!(
+            (*mutex).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
+            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            "This lock is not write-locked by this thread"
+        );
+
+        // TODO(ed): We shouldn't need to transform the time back into
+        // an absolute value. We should extend CloudABI to also allow
+        // the use of cloudabi::eventtype::CONDVAR in combination with
+        // relative timeouts.
+        let mut t: cloudabi::timestamp = 0;
+        let ret = cloudabi::clock_time_get(cloudabi::clockid::MONOTONIC, 0, &mut t);
+        assert_eq!(ret, cloudabi::errno::SUCCESS);
+
+        // Call into the kernel to wait on the condition variable.
+        let condvar = self.condvar.get();
+        let subscriptions = [
+            cloudabi::subscription {
+                type_: cloudabi::eventtype::CONDVAR,
+                union: cloudabi::subscription_union {
+                    condvar: cloudabi::subscription_condvar {
+                        condvar: condvar as *mut cloudabi::condvar,
+                        condvar_scope: cloudabi::scope::PRIVATE,
+                        lock: mutex as *mut cloudabi::lock,
+                        lock_scope: cloudabi::scope::PRIVATE,
+                    },
+                },
+                ..mem::zeroed()
+            },
+            cloudabi::subscription {
+                type_: cloudabi::eventtype::CLOCK,
+                union: cloudabi::subscription_union {
+                    clock: cloudabi::subscription_clock {
+                        clock_id: cloudabi::clockid::MONOTONIC,
+                        flags: cloudabi::subclockflags::ABSTIME,
+                        timeout: t + dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
+                        ..mem::zeroed()
+                    },
+                },
+                ..mem::zeroed()
+            },
+        ];
+        let mut events: [cloudabi::event; 2] = mem::uninitialized();
+        let mut nevents: usize = mem::uninitialized();
+        let ret = cloudabi::poll(subscriptions.as_ptr(), events.as_mut_ptr(), 2, &mut nevents);
+        assert_eq!(
+            ret,
+            cloudabi::errno::SUCCESS,
+            "Failed to wait on condition variable"
+        );
+        for i in 0..nevents {
+            assert_eq!(
+                events[i].error,
+                cloudabi::errno::SUCCESS,
+                "Failed to wait on condition variable"
+            );
+            if events[i].type_ == cloudabi::eventtype::CONDVAR {
+                return true;
+            }
+        }
         false
     }
 
