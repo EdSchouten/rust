@@ -30,9 +30,6 @@ doc = false
 # See https://github.com/rust-lang/rfcs/pull/1133.
 core = { path = "../../libcore" }
 
-[target.'cfg(target_os = "cloudabi")'.dependencies]
-cloudabi = { path = "../cloudabi_shim" }
-
 [features]
 # Certain parts of libc are conditionally compiled differently than when used
 # outside rustc. See https://github.com/rust-lang/libc/search?l=Rust&q=stdbuild&type=&utf8=%E2%9C%93.
