@@ -51,6 +51,3 @@
 [submodule "src/libcloudabi"]
 	path = src/libcloudabi
 	url = https://github.com/NuxiNL/cloudabi.git
-[submodule "src/libbitflags"]
-	path = src/libbitflags
-	url = https://github.com/rust-lang-nursery/bitflags.git
