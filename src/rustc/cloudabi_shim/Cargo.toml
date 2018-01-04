@@ -8,5 +8,4 @@ name = "cloudabi"
 path = "../../libcloudabi/rust/cloudabi.rs"
 
 [dependencies]
-bitflags = { path = "../bitflags_shim" }
 core = { path = "../../libcore" }
