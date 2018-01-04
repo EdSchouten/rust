@@ -114,13 +114,6 @@ impl Condvar {
             "This lock is not write-locked by this thread"
         );
 
-        // Obtain the time of day, so that the timeout can be converted
-        // to an absolute value. CloudABI doesn't support waiting on
-        // condition variables with a relative timeout.
-        let mut now: cloudabi::timestamp = 0;
-        let ret = cloudabi::clock_time_get(cloudabi::clockid::MONOTONIC, 0, &mut now);
-        assert_eq!(ret, cloudabi::errno::SUCCESS);
-
         // Call into the kernel to wait on the condition variable.
         let condvar = self.condvar.get();
         let subscriptions = [
@@ -141,8 +134,7 @@ impl Condvar {
                 union: cloudabi::subscription_union {
                     clock: cloudabi::subscription_clock {
                         clock_id: cloudabi::clockid::MONOTONIC,
-                        flags: cloudabi::subclockflags::ABSTIME,
-                        timeout: now + dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
+                        timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
                         ..mem::zeroed()
                     },
                 },
