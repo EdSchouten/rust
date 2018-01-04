@@ -108,13 +108,6 @@ version = "0.1.0"
 
 [[package]]
 name = "bitflags"
-version = "0.0.0"
-dependencies = [
- "core 0.0.0",
-]
-
-[[package]]
-name = "bitflags"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
@@ -334,7 +327,6 @@ dependencies = [
 name = "cloudabi"
 version = "0.0.0"
 dependencies = [
- "bitflags 0.0.0",
  "core 0.0.0",
 ]
 
