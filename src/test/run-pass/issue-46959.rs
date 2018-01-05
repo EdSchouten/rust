@@ -1,4 +1,4 @@
-// Copyright 2015 The Rust Project Developers. See the COPYRIGHT
+// Copyright 2018 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -8,13 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-struct NoCopy;
-fn main() {
-   let x = NoCopy;
-   let f = move || { let y = x; };
-   //~^ NOTE value moved (into closure) here
-   let z = x;
-   //~^ ERROR use of moved value: `x`
-   //~| NOTE value used here after move
-   //~| NOTE move occurs because `x` has type `NoCopy`
+#![feature(universal_impl_trait)]
+#![feature(conservative_impl_trait)]
+#![deny(non_camel_case_types)]
+
+#[allow(dead_code)]
+fn qqq(lol: impl Iterator<Item=u32>) -> impl Iterator<Item=u64> {
+        lol.map(|x|x as u64)
 }
+
+fn main() {}

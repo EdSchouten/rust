@@ -1,4 +1,4 @@
-// Copyright 2015 The Rust Project Developers. See the COPYRIGHT
+// Copyright 2018 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -8,13 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-struct NoCopy;
-fn main() {
-   let x = NoCopy;
-   let f = move || { let y = x; };
-   //~^ NOTE value moved (into closure) here
-   let z = x;
-   //~^ ERROR use of moved value: `x`
-   //~| NOTE value used here after move
-   //~| NOTE move occurs because `x` has type `NoCopy`
+pub fn main() {
+    assert_eq!(!0usize as *const (), foo(0, 1));
+    assert_eq!(!0usize as *const (), (0i8 - 1) as *const ());
+}
+
+pub fn foo(a: i8, b: i8) -> *const () {
+    (a - b) as *const ()
 }

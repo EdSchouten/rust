@@ -1,4 +1,4 @@
-// Copyright 2015 The Rust Project Developers. See the COPYRIGHT
+// Copyright 2017 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
 //
@@ -8,13 +8,23 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-struct NoCopy;
+#![feature(nll)]
+
+// run-pass
+
+fn vec() {
+    let mut _x = vec!['c'];
+    let _y = &_x;
+    _x = Vec::new();
+}
+
+fn int() {
+    let mut _x = 5;
+    let _y = &_x;
+    _x = 7;
+}
+
 fn main() {
-   let x = NoCopy;
-   let f = move || { let y = x; };
-   //~^ NOTE value moved (into closure) here
-   let z = x;
-   //~^ ERROR use of moved value: `x`
-   //~| NOTE value used here after move
-   //~| NOTE move occurs because `x` has type `NoCopy`
+    vec();
+    int();
 }
