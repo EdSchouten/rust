@@ -53,17 +53,10 @@ pub unsafe extern fn __rust_maybe_catch_panic(f: fn(*mut u8),
 pub unsafe extern fn __rust_start_panic(_data: usize, _vtable: usize) -> u32 {
     abort();
 
-    #[cfg(unix)]
+    #[cfg(any(unix, target_os = "cloudabi"))]
     unsafe fn abort() -> ! {
         extern crate libc;
         libc::abort();
-    }
-
-    #[cfg(target_os = "cloudabi")]
-    unsafe fn abort() -> ! {
-        extern crate cloudabi;
-        cloudabi::proc_raise(cloudabi::signal::ABRT);
-        cloudabi::proc_exit(1);
     }
 
     #[cfg(any(target_os = "redox",
