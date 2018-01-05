@@ -48,6 +48,3 @@
 [submodule "src/binaryen"]
 	path = src/binaryen
 	url = https://github.com/alexcrichton/binaryen.git
-[submodule "src/libcloudabi"]
-	path = src/libcloudabi
-	url = https://github.com/NuxiNL/cloudabi.git
