@@ -14,4 +14,4 @@ core = { path = "../libcore" }
 libc = { path = "../rustc/libc_shim" }
 
 [target.'cfg(target_os = "cloudabi")'.dependencies]
-cloudabi = { path = "../rustc/cloudabi_shim" }
+cloudabi = { path = "../libcloudabi" }
