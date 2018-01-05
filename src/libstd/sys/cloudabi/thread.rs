@@ -18,9 +18,9 @@ use libc;
 use mem;
 use ptr;
 use sys::os;
-use time::Duration;
-
+use sys::time::dur2intervals;
 use sys_common::thread::*;
+use time::Duration;
 
 pub const DEFAULT_MIN_STACK_SIZE: usize = 2 * 1024 * 1024;
 
@@ -100,7 +100,7 @@ impl Thread {
                 union: cloudabi::subscription_union {
                     clock: cloudabi::subscription_clock {
                         clock_id: cloudabi::clockid::MONOTONIC,
-                        timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
+                        timeout: dur2intervals(&dur),
                         ..mem::zeroed()
                     },
                 },

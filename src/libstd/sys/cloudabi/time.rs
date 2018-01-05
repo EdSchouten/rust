@@ -12,17 +12,17 @@ extern crate cloudabi;
 
 use time::Duration;
 
-const NSEC_PER_SEC: u64 = 1_000_000_000;
+const NSEC_PER_SEC: cloudabi::timestamp = 1_000_000_000;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct Instant {
     t: cloudabi::timestamp,
 }
 
-fn dur2intervals(dur: &Duration) -> u64 {
+pub fn dur2intervals(dur: &Duration) -> cloudabi::timestamp {
     dur.as_secs()
         .checked_mul(NSEC_PER_SEC)
-        .and_then(|nanos| nanos.checked_add(dur.subsec_nanos() as u64))
+        .and_then(|nanos| nanos.checked_add(dur.subsec_nanos() as cloudabi::timestamp))
         .expect("overflow converting duration to nanoseconds")
 }
 

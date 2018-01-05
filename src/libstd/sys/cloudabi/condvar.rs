@@ -14,6 +14,7 @@ use cell::UnsafeCell;
 use mem;
 use sync::atomic::{AtomicU32, Ordering};
 use sys::mutex::{self, Mutex};
+use sys::time::dur2intervals;
 use time::Duration;
 
 extern "C" {
@@ -134,7 +135,7 @@ impl Condvar {
                 union: cloudabi::subscription_union {
                     clock: cloudabi::subscription_clock {
                         clock_id: cloudabi::clockid::MONOTONIC,
-                        timeout: dur.as_secs() * 1000000000 + dur.subsec_nanos() as u64,
+                        timeout: dur2intervals(&dur),
                         ..mem::zeroed()
                     },
                 },
