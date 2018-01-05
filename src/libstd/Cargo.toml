@@ -38,9 +38,6 @@ rustc_lsan = { path = "../librustc_lsan" }
 rustc_msan = { path = "../librustc_msan" }
 rustc_tsan = { path = "../librustc_tsan" }
 
-[target.'cfg(target_os = "cloudabi")'.dependencies]
-cloudabi = { path = "../libcloudabi" }
-
 [build-dependencies]
 build_helper = { path = "../build_helper" }
 

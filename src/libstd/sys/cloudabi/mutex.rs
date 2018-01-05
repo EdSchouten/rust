@@ -8,16 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate cloudabi;
-
 use cell::UnsafeCell;
 use mem;
-use sys::rwlock::{self, RWLock};
 use sync::atomic::{AtomicU32, Ordering};
+use sys::cloudabi::abi;
+use sys::rwlock::{self, RWLock};
 
 extern "C" {
     #[thread_local]
-    static __pthread_thread_id: cloudabi::tid;
+    static __pthread_thread_id: abi::tid;
 }
 
 // Implement Mutex using an RWLock. This doesn't introduce any
@@ -68,7 +67,7 @@ impl ReentrantMutex {
     }
 
     pub unsafe fn init(&mut self) {
-        self.lock = UnsafeCell::new(AtomicU32::new(cloudabi::LOCK_UNLOCKED.0));
+        self.lock = UnsafeCell::new(AtomicU32::new(abi::LOCK_UNLOCKED.0));
         self.recursion = UnsafeCell::new(0);
     }
 
@@ -77,16 +76,14 @@ impl ReentrantMutex {
         let lock = self.lock.get();
         let recursion = self.recursion.get();
         if let Err(old) = (*lock).compare_exchange(
-            cloudabi::LOCK_UNLOCKED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            abi::LOCK_UNLOCKED.0,
+            __pthread_thread_id.0 | abi::LOCK_WRLOCKED.0,
             Ordering::Acquire,
             Ordering::Relaxed,
         ) {
             // If we fail to acquire the lock, it may be the case
             // that we've already acquired it and may need to recurse.
-            if old & !cloudabi::LOCK_KERNEL_MANAGED.0
-                == __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0
-            {
+            if old & !abi::LOCK_KERNEL_MANAGED.0 == __pthread_thread_id.0 | abi::LOCK_WRLOCKED.0 {
                 *recursion += 1;
                 true
             } else {
@@ -103,25 +100,21 @@ impl ReentrantMutex {
         if !self.try_lock() {
             // Call into the kernel to acquire a write lock.
             let lock = self.lock.get();
-            let subscription = cloudabi::subscription {
-                type_: cloudabi::eventtype::LOCK_WRLOCK,
-                union: cloudabi::subscription_union {
-                    lock: cloudabi::subscription_lock {
-                        lock: lock as *mut cloudabi::lock,
-                        lock_scope: cloudabi::scope::PRIVATE,
+            let subscription = abi::subscription {
+                type_: abi::eventtype::LOCK_WRLOCK,
+                union: abi::subscription_union {
+                    lock: abi::subscription_lock {
+                        lock: lock as *mut abi::lock,
+                        lock_scope: abi::scope::PRIVATE,
                     },
                 },
                 ..mem::zeroed()
             };
-            let mut event: cloudabi::event = mem::uninitialized();
+            let mut event: abi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
-            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to acquire mutex");
-            assert_eq!(
-                event.error,
-                cloudabi::errno::SUCCESS,
-                "Failed to acquire mutex"
-            );
+            let ret = abi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, abi::errno::SUCCESS, "Failed to acquire mutex");
+            assert_eq!(event.error, abi::errno::SUCCESS, "Failed to acquire mutex");
         }
     }
 
@@ -129,8 +122,8 @@ impl ReentrantMutex {
         let lock = self.lock.get();
         let recursion = self.recursion.get();
         assert_eq!(
-            (*lock).load(Ordering::Relaxed) & !cloudabi::LOCK_KERNEL_MANAGED.0,
-            __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
+            (*lock).load(Ordering::Relaxed) & !abi::LOCK_KERNEL_MANAGED.0,
+            __pthread_thread_id.0 | abi::LOCK_WRLOCKED.0,
             "This mutex is locked by a different thread"
         );
 
@@ -138,8 +131,8 @@ impl ReentrantMutex {
             *recursion -= 1;
         } else if !(*lock)
             .compare_exchange(
-                __pthread_thread_id.0 | cloudabi::LOCK_WRLOCKED.0,
-                cloudabi::LOCK_UNLOCKED.0,
+                __pthread_thread_id.0 | abi::LOCK_WRLOCKED.0,
+                abi::LOCK_UNLOCKED.0,
                 Ordering::Release,
                 Ordering::Relaxed,
             )
@@ -147,8 +140,8 @@ impl ReentrantMutex {
         {
             // Lock is managed by kernelspace. Call into the kernel
             // to unblock waiting threads.
-            let ret = cloudabi::lock_unlock(lock as *mut cloudabi::lock, cloudabi::scope::PRIVATE);
-            assert_eq!(ret, cloudabi::errno::SUCCESS, "Failed to unlock a mutex");
+            let ret = abi::lock_unlock(lock as *mut abi::lock, abi::scope::PRIVATE);
+            assert_eq!(ret, abi::errno::SUCCESS, "Failed to unlock a mutex");
         }
     }
 
@@ -157,7 +150,7 @@ impl ReentrantMutex {
         let recursion = self.recursion.get();
         assert_eq!(
             (*lock).load(Ordering::Relaxed),
-            cloudabi::LOCK_UNLOCKED.0,
+            abi::LOCK_UNLOCKED.0,
             "Attempted to destroy locked mutex"
         );
         assert_eq!(*recursion, 0, "Recursion counter invalid");

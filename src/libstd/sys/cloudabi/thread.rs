@@ -8,8 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate cloudabi;
-
 use alloc::boxed::FnBox;
 use cmp;
 use ffi::CStr;
@@ -17,6 +15,7 @@ use io;
 use libc;
 use mem;
 use ptr;
+use sys::cloudabi::abi;
 use sys::os;
 use sys::time::dur2intervals;
 use sys_common::thread::*;
@@ -85,8 +84,8 @@ impl Thread {
     }
 
     pub fn yield_now() {
-        let ret = unsafe { cloudabi::thread_yield() };
-        debug_assert_eq!(ret, cloudabi::errno::SUCCESS);
+        let ret = unsafe { abi::thread_yield() };
+        debug_assert_eq!(ret, abi::errno::SUCCESS);
     }
 
     pub fn set_name(_name: &CStr) {
@@ -95,22 +94,22 @@ impl Thread {
 
     pub fn sleep(dur: Duration) {
         unsafe {
-            let subscription = cloudabi::subscription {
-                type_: cloudabi::eventtype::CLOCK,
-                union: cloudabi::subscription_union {
-                    clock: cloudabi::subscription_clock {
-                        clock_id: cloudabi::clockid::MONOTONIC,
+            let subscription = abi::subscription {
+                type_: abi::eventtype::CLOCK,
+                union: abi::subscription_union {
+                    clock: abi::subscription_clock {
+                        clock_id: abi::clockid::MONOTONIC,
                         timeout: dur2intervals(&dur),
                         ..mem::zeroed()
                     },
                 },
                 ..mem::zeroed()
             };
-            let mut event: cloudabi::event = mem::uninitialized();
+            let mut event: abi::event = mem::uninitialized();
             let mut nevents: usize = mem::uninitialized();
-            let ret = cloudabi::poll(&subscription, &mut event, 1, &mut nevents);
-            assert_eq!(ret, cloudabi::errno::SUCCESS);
-            assert_eq!(event.error, cloudabi::errno::SUCCESS);
+            let ret = abi::poll(&subscription, &mut event, 1, &mut nevents);
+            assert_eq!(ret, abi::errno::SUCCESS);
+            assert_eq!(event.error, abi::errno::SUCCESS);
         }
     }
 

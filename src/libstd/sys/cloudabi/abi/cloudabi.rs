@@ -118,117 +118,117 @@ include!("bitflags.rs");
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum advice {
-  /// The application expects that it will not access the
-  /// specified data in the near future.
-  DONTNEED   = 1,
-  /// The application expects to access the specified data
-  /// once and then not reuse it thereafter.
-  NOREUSE    = 2,
-  /// The application has no advice to give on its behavior
-  /// with respect to the specified data.
-  NORMAL     = 3,
-  /// The application expects to access the specified data
-  /// in a random order.
-  RANDOM     = 4,
-  /// The application expects to access the specified data
-  /// sequentially from lower offsets to higher offsets.
-  SEQUENTIAL = 5,
-  /// The application expects to access the specified data
-  /// in the near future.
-  WILLNEED   = 6,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// The application expects that it will not access the
+    /// specified data in the near future.
+    DONTNEED = 1,
+    /// The application expects to access the specified data
+    /// once and then not reuse it thereafter.
+    NOREUSE = 2,
+    /// The application has no advice to give on its behavior
+    /// with respect to the specified data.
+    NORMAL = 3,
+    /// The application expects to access the specified data
+    /// in a random order.
+    RANDOM = 4,
+    /// The application expects to access the specified data
+    /// sequentially from lower offsets to higher offsets.
+    SEQUENTIAL = 5,
+    /// The application expects to access the specified data
+    /// in the near future.
+    WILLNEED = 6,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 /// Enumeration describing the kind of value stored in [`auxv`](struct.auxv.html).
 #[repr(u32)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum auxtype {
-  /// Base address of the binary argument data provided to
-  /// [`proc_exec()`](fn.proc_exec.html).
-  ARGDATA      = 256,
-  /// Length of the binary argument data provided to
-  /// [`proc_exec()`](fn.proc_exec.html).
-  ARGDATALEN   = 257,
-  /// Base address at which the executable is placed in
-  /// memory.
-  BASE         =   7,
-  /// Base address of a buffer of random data that may be
-  /// used for non-cryptographic purposes, for example as a
-  /// canary for stack smashing protection.
-  CANARY       = 258,
-  /// Length of a buffer of random data that may be used
-  /// for non-cryptographic purposes, for example as a
-  /// canary for stack smashing protection.
-  CANARYLEN    = 259,
-  /// Number of CPUs that the system this process is running
-  /// on has.
-  NCPUS        = 260,
-  /// Terminator of the auxiliary vector.
-  NULL         =   0,
-  /// Smallest memory object size for which individual
-  /// memory protection controls can be configured.
-  PAGESZ       =   6,
-  /// Address of the first ELF program header of the
-  /// executable.
-  PHDR         =   3,
-  /// Number of ELF program headers of the executable.
-  PHNUM        =   4,
-  /// Identifier of the process.
-  ///
-  /// This environment does not provide any simple numerical
-  /// process identifiers, for the reason that these are not
-  /// useful in distributed contexts. Instead, processes are
-  /// identified by a UUID.
-  ///
-  /// This record should point to sixteen bytes of binary
-  /// data, containing a version 4 UUID (fully random).
-  PID          = 263,
-  /// Address of the ELF header of the vDSO.
-  ///
-  /// The vDSO is a shared library that is mapped in the
-  /// address space of the process. It provides entry points
-  /// for every system call supported by the environment,
-  /// all having a corresponding symbol that is prefixed
-  /// with `cloudabi_sys_`. System calls should be invoked
-  /// through these entry points.
-  ///
-  /// The first advantage of letting processes call into a
-  /// vDSO to perform system calls instead of raising
-  /// hardware traps is that it allows for easy emulation of
-  /// executables on top of existing operating systems. The
-  /// second advantage is that in cases where an operating
-  /// system provides native support for CloudABI executables,
-  /// it may still implement partial userspace
-  /// implementations of these system calls to improve
-  /// performance (e.g., [`clock_time_get()`](fn.clock_time_get.html)). It also provides
-  /// a more dynamic way of adding, removing or replacing
-  /// system calls.
-  SYSINFO_EHDR = 262,
-  /// Thread ID of the initial thread of the process.
-  TID          = 261,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u32,
+    /// Base address of the binary argument data provided to
+    /// [`proc_exec()`](fn.proc_exec.html).
+    ARGDATA = 256,
+    /// Length of the binary argument data provided to
+    /// [`proc_exec()`](fn.proc_exec.html).
+    ARGDATALEN = 257,
+    /// Base address at which the executable is placed in
+    /// memory.
+    BASE = 7,
+    /// Base address of a buffer of random data that may be
+    /// used for non-cryptographic purposes, for example as a
+    /// canary for stack smashing protection.
+    CANARY = 258,
+    /// Length of a buffer of random data that may be used
+    /// for non-cryptographic purposes, for example as a
+    /// canary for stack smashing protection.
+    CANARYLEN = 259,
+    /// Number of CPUs that the system this process is running
+    /// on has.
+    NCPUS = 260,
+    /// Terminator of the auxiliary vector.
+    NULL = 0,
+    /// Smallest memory object size for which individual
+    /// memory protection controls can be configured.
+    PAGESZ = 6,
+    /// Address of the first ELF program header of the
+    /// executable.
+    PHDR = 3,
+    /// Number of ELF program headers of the executable.
+    PHNUM = 4,
+    /// Identifier of the process.
+    ///
+    /// This environment does not provide any simple numerical
+    /// process identifiers, for the reason that these are not
+    /// useful in distributed contexts. Instead, processes are
+    /// identified by a UUID.
+    ///
+    /// This record should point to sixteen bytes of binary
+    /// data, containing a version 4 UUID (fully random).
+    PID = 263,
+    /// Address of the ELF header of the vDSO.
+    ///
+    /// The vDSO is a shared library that is mapped in the
+    /// address space of the process. It provides entry points
+    /// for every system call supported by the environment,
+    /// all having a corresponding symbol that is prefixed
+    /// with `cloudabi_sys_`. System calls should be invoked
+    /// through these entry points.
+    ///
+    /// The first advantage of letting processes call into a
+    /// vDSO to perform system calls instead of raising
+    /// hardware traps is that it allows for easy emulation of
+    /// executables on top of existing operating systems. The
+    /// second advantage is that in cases where an operating
+    /// system provides native support for CloudABI executables,
+    /// it may still implement partial userspace
+    /// implementations of these system calls to improve
+    /// performance (e.g., [`clock_time_get()`](fn.clock_time_get.html)). It also provides
+    /// a more dynamic way of adding, removing or replacing
+    /// system calls.
+    SYSINFO_EHDR = 262,
+    /// Thread ID of the initial thread of the process.
+    TID = 261,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u32,
 }
 
 /// Identifiers for clocks.
 #[repr(u32)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum clockid {
-  /// The system-wide monotonic clock, which is defined as a
-  /// clock measuring real time, whose value cannot be
-  /// adjusted and which cannot have negative clock jumps.
-  ///
-  /// The epoch of this clock is undefined. The absolute
-  /// time value of this clock therefore has no meaning.
-  MONOTONIC          = 1,
-  /// The CPU-time clock associated with the current
-  /// process.
-  PROCESS_CPUTIME_ID = 2,
-  /// The system-wide clock measuring real time. Time value
-  /// zero corresponds with 1970-01-01T00:00:00Z.
-  REALTIME           = 3,
-  /// The CPU-time clock associated with the current thread.
-  THREAD_CPUTIME_ID  = 4,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u32,
+    /// The system-wide monotonic clock, which is defined as a
+    /// clock measuring real time, whose value cannot be
+    /// adjusted and which cannot have negative clock jumps.
+    ///
+    /// The epoch of this clock is undefined. The absolute
+    /// time value of this clock therefore has no meaning.
+    MONOTONIC = 1,
+    /// The CPU-time clock associated with the current
+    /// process.
+    PROCESS_CPUTIME_ID = 2,
+    /// The system-wide clock measuring real time. Time value
+    /// zero corresponds with 1970-01-01T00:00:00Z.
+    REALTIME = 3,
+    /// The CPU-time clock associated with the current thread.
+    THREAD_CPUTIME_ID = 4,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u32,
 }
 
 /// A userspace condition variable.
@@ -264,161 +264,161 @@ pub const DIRCOOKIE_START: dircookie = dircookie(0);
 #[repr(u16)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum errno {
-  /// No error occurred. System call completed successfully.
-  SUCCESS        =  0,
-  /// Argument list too long.
-  TOOBIG         =  1,
-  /// Permission denied.
-  ACCES          =  2,
-  /// Address in use.
-  ADDRINUSE      =  3,
-  /// Address not available.
-  ADDRNOTAVAIL   =  4,
-  /// Address family not supported.
-  AFNOSUPPORT    =  5,
-  /// Resource unavailable, or operation would block.
-  AGAIN          =  6,
-  /// Connection already in progress.
-  ALREADY        =  7,
-  /// Bad file descriptor.
-  BADF           =  8,
-  /// Bad message.
-  BADMSG         =  9,
-  /// Device or resource busy.
-  BUSY           = 10,
-  /// Operation canceled.
-  CANCELED       = 11,
-  /// No child processes.
-  CHILD          = 12,
-  /// Connection aborted.
-  CONNABORTED    = 13,
-  /// Connection refused.
-  CONNREFUSED    = 14,
-  /// Connection reset.
-  CONNRESET      = 15,
-  /// Resource deadlock would occur.
-  DEADLK         = 16,
-  /// Destination address required.
-  DESTADDRREQ    = 17,
-  /// Mathematics argument out of domain of function.
-  DOM            = 18,
-  /// Reserved.
-  DQUOT          = 19,
-  /// File exists.
-  EXIST          = 20,
-  /// Bad address.
-  FAULT          = 21,
-  /// File too large.
-  FBIG           = 22,
-  /// Host is unreachable.
-  HOSTUNREACH    = 23,
-  /// Identifier removed.
-  IDRM           = 24,
-  /// Illegal byte sequence.
-  ILSEQ          = 25,
-  /// Operation in progress.
-  INPROGRESS     = 26,
-  /// Interrupted function.
-  INTR           = 27,
-  /// Invalid argument.
-  INVAL          = 28,
-  /// I/O error.
-  IO             = 29,
-  /// Socket is connected.
-  ISCONN         = 30,
-  /// Is a directory.
-  ISDIR          = 31,
-  /// Too many levels of symbolic links.
-  LOOP           = 32,
-  /// File descriptor value too large.
-  MFILE          = 33,
-  /// Too many links.
-  MLINK          = 34,
-  /// Message too large.
-  MSGSIZE        = 35,
-  /// Reserved.
-  MULTIHOP       = 36,
-  /// Filename too long.
-  NAMETOOLONG    = 37,
-  /// Network is down.
-  NETDOWN        = 38,
-  /// Connection aborted by network.
-  NETRESET       = 39,
-  /// Network unreachable.
-  NETUNREACH     = 40,
-  /// Too many files open in system.
-  NFILE          = 41,
-  /// No buffer space available.
-  NOBUFS         = 42,
-  /// No such device.
-  NODEV          = 43,
-  /// No such file or directory.
-  NOENT          = 44,
-  /// Executable file format error.
-  NOEXEC         = 45,
-  /// No locks available.
-  NOLCK          = 46,
-  /// Reserved.
-  NOLINK         = 47,
-  /// Not enough space.
-  NOMEM          = 48,
-  /// No message of the desired type.
-  NOMSG          = 49,
-  /// Protocol not available.
-  NOPROTOOPT     = 50,
-  /// No space left on device.
-  NOSPC          = 51,
-  /// Function not supported.
-  NOSYS          = 52,
-  /// The socket is not connected.
-  NOTCONN        = 53,
-  /// Not a directory or a symbolic link to a directory.
-  NOTDIR         = 54,
-  /// Directory not empty.
-  NOTEMPTY       = 55,
-  /// State not recoverable.
-  NOTRECOVERABLE = 56,
-  /// Not a socket.
-  NOTSOCK        = 57,
-  /// Not supported, or operation not supported on socket.
-  NOTSUP         = 58,
-  /// Inappropriate I/O control operation.
-  NOTTY          = 59,
-  /// No such device or address.
-  NXIO           = 60,
-  /// Value too large to be stored in data type.
-  OVERFLOW       = 61,
-  /// Previous owner died.
-  OWNERDEAD      = 62,
-  /// Operation not permitted.
-  PERM           = 63,
-  /// Broken pipe.
-  PIPE           = 64,
-  /// Protocol error.
-  PROTO          = 65,
-  /// Protocol not supported.
-  PROTONOSUPPORT = 66,
-  /// Protocol wrong type for socket.
-  PROTOTYPE      = 67,
-  /// Result too large.
-  RANGE          = 68,
-  /// Read-only file system.
-  ROFS           = 69,
-  /// Invalid seek.
-  SPIPE          = 70,
-  /// No such process.
-  SRCH           = 71,
-  /// Reserved.
-  STALE          = 72,
-  /// Connection timed out.
-  TIMEDOUT       = 73,
-  /// Text file busy.
-  TXTBSY         = 74,
-  /// Cross-device link.
-  XDEV           = 75,
-  /// Extension: Capabilities insufficient.
-  NOTCAPABLE     = 76,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u16,
+    /// No error occurred. System call completed successfully.
+    SUCCESS = 0,
+    /// Argument list too long.
+    TOOBIG = 1,
+    /// Permission denied.
+    ACCES = 2,
+    /// Address in use.
+    ADDRINUSE = 3,
+    /// Address not available.
+    ADDRNOTAVAIL = 4,
+    /// Address family not supported.
+    AFNOSUPPORT = 5,
+    /// Resource unavailable, or operation would block.
+    AGAIN = 6,
+    /// Connection already in progress.
+    ALREADY = 7,
+    /// Bad file descriptor.
+    BADF = 8,
+    /// Bad message.
+    BADMSG = 9,
+    /// Device or resource busy.
+    BUSY = 10,
+    /// Operation canceled.
+    CANCELED = 11,
+    /// No child processes.
+    CHILD = 12,
+    /// Connection aborted.
+    CONNABORTED = 13,
+    /// Connection refused.
+    CONNREFUSED = 14,
+    /// Connection reset.
+    CONNRESET = 15,
+    /// Resource deadlock would occur.
+    DEADLK = 16,
+    /// Destination address required.
+    DESTADDRREQ = 17,
+    /// Mathematics argument out of domain of function.
+    DOM = 18,
+    /// Reserved.
+    DQUOT = 19,
+    /// File exists.
+    EXIST = 20,
+    /// Bad address.
+    FAULT = 21,
+    /// File too large.
+    FBIG = 22,
+    /// Host is unreachable.
+    HOSTUNREACH = 23,
+    /// Identifier removed.
+    IDRM = 24,
+    /// Illegal byte sequence.
+    ILSEQ = 25,
+    /// Operation in progress.
+    INPROGRESS = 26,
+    /// Interrupted function.
+    INTR = 27,
+    /// Invalid argument.
+    INVAL = 28,
+    /// I/O error.
+    IO = 29,
+    /// Socket is connected.
+    ISCONN = 30,
+    /// Is a directory.
+    ISDIR = 31,
+    /// Too many levels of symbolic links.
+    LOOP = 32,
+    /// File descriptor value too large.
+    MFILE = 33,
+    /// Too many links.
+    MLINK = 34,
+    /// Message too large.
+    MSGSIZE = 35,
+    /// Reserved.
+    MULTIHOP = 36,
+    /// Filename too long.
+    NAMETOOLONG = 37,
+    /// Network is down.
+    NETDOWN = 38,
+    /// Connection aborted by network.
+    NETRESET = 39,
+    /// Network unreachable.
+    NETUNREACH = 40,
+    /// Too many files open in system.
+    NFILE = 41,
+    /// No buffer space available.
+    NOBUFS = 42,
+    /// No such device.
+    NODEV = 43,
+    /// No such file or directory.
+    NOENT = 44,
+    /// Executable file format error.
+    NOEXEC = 45,
+    /// No locks available.
+    NOLCK = 46,
+    /// Reserved.
+    NOLINK = 47,
+    /// Not enough space.
+    NOMEM = 48,
+    /// No message of the desired type.
+    NOMSG = 49,
+    /// Protocol not available.
+    NOPROTOOPT = 50,
+    /// No space left on device.
+    NOSPC = 51,
+    /// Function not supported.
+    NOSYS = 52,
+    /// The socket is not connected.
+    NOTCONN = 53,
+    /// Not a directory or a symbolic link to a directory.
+    NOTDIR = 54,
+    /// Directory not empty.
+    NOTEMPTY = 55,
+    /// State not recoverable.
+    NOTRECOVERABLE = 56,
+    /// Not a socket.
+    NOTSOCK = 57,
+    /// Not supported, or operation not supported on socket.
+    NOTSUP = 58,
+    /// Inappropriate I/O control operation.
+    NOTTY = 59,
+    /// No such device or address.
+    NXIO = 60,
+    /// Value too large to be stored in data type.
+    OVERFLOW = 61,
+    /// Previous owner died.
+    OWNERDEAD = 62,
+    /// Operation not permitted.
+    PERM = 63,
+    /// Broken pipe.
+    PIPE = 64,
+    /// Protocol error.
+    PROTO = 65,
+    /// Protocol not supported.
+    PROTONOSUPPORT = 66,
+    /// Protocol wrong type for socket.
+    PROTOTYPE = 67,
+    /// Result too large.
+    RANGE = 68,
+    /// Read-only file system.
+    ROFS = 69,
+    /// Invalid seek.
+    SPIPE = 70,
+    /// No such process.
+    SRCH = 71,
+    /// Reserved.
+    STALE = 72,
+    /// Connection timed out.
+    TIMEDOUT = 73,
+    /// Text file busy.
+    TXTBSY = 74,
+    /// Cross-device link.
+    XDEV = 75,
+    /// Extension: Capabilities insufficient.
+    NOTCAPABLE = 76,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u16,
 }
 
 bitflags! {
@@ -435,31 +435,31 @@ bitflags! {
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum eventtype {
-  /// The time value of clock [`subscription.union.clock.clock_id`](struct.subscription_clock.html#structfield.clock_id)
-  /// has reached timestamp [`subscription.union.clock.timeout`](struct.subscription_clock.html#structfield.timeout).
-  CLOCK          = 1,
-  /// Condition variable [`subscription.union.condvar.condvar`](struct.subscription_condvar.html#structfield.condvar) has
-  /// been woken up and [`subscription.union.condvar.lock`](struct.subscription_condvar.html#structfield.lock) has been
-  /// acquired for writing.
-  CONDVAR        = 2,
-  /// File descriptor [`subscription.union.fd_readwrite.fd`](struct.subscription_fd_readwrite.html#structfield.fd) has
-  /// data available for reading. This event always triggers
-  /// for regular files.
-  FD_READ        = 3,
-  /// File descriptor [`subscription.union.fd_readwrite.fd`](struct.subscription_fd_readwrite.html#structfield.fd) has
-  /// capacity available for writing. This event always
-  /// triggers for regular files.
-  FD_WRITE       = 4,
-  /// Lock [`subscription.union.lock.lock`](struct.subscription_lock.html#structfield.lock) has been acquired for
-  /// reading.
-  LOCK_RDLOCK    = 5,
-  /// Lock [`subscription.union.lock.lock`](struct.subscription_lock.html#structfield.lock) has been acquired for
-  /// writing.
-  LOCK_WRLOCK    = 6,
-  /// The process associated with process descriptor
-  /// [`subscription.union.proc_terminate.fd`](struct.subscription_proc_terminate.html#structfield.fd) has terminated.
-  PROC_TERMINATE = 7,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// The time value of clock [`subscription.union.clock.clock_id`](struct.subscription_clock.html#structfield.clock_id)
+    /// has reached timestamp [`subscription.union.clock.timeout`](struct.subscription_clock.html#structfield.timeout).
+    CLOCK = 1,
+    /// Condition variable [`subscription.union.condvar.condvar`](struct.subscription_condvar.html#structfield.condvar) has
+    /// been woken up and [`subscription.union.condvar.lock`](struct.subscription_condvar.html#structfield.lock) has been
+    /// acquired for writing.
+    CONDVAR = 2,
+    /// File descriptor [`subscription.union.fd_readwrite.fd`](struct.subscription_fd_readwrite.html#structfield.fd) has
+    /// data available for reading. This event always triggers
+    /// for regular files.
+    FD_READ = 3,
+    /// File descriptor [`subscription.union.fd_readwrite.fd`](struct.subscription_fd_readwrite.html#structfield.fd) has
+    /// capacity available for writing. This event always
+    /// triggers for regular files.
+    FD_WRITE = 4,
+    /// Lock [`subscription.union.lock.lock`](struct.subscription_lock.html#structfield.lock) has been acquired for
+    /// reading.
+    LOCK_RDLOCK = 5,
+    /// Lock [`subscription.union.lock.lock`](struct.subscription_lock.html#structfield.lock) has been acquired for
+    /// writing.
+    LOCK_WRLOCK = 6,
+    /// The process associated with process descriptor
+    /// [`subscription.union.proc_terminate.fd`](struct.subscription_proc_terminate.html#structfield.fd) has terminated.
+    PROC_TERMINATE = 7,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 /// Exit code generated by a process when exiting.
@@ -478,7 +478,7 @@ pub struct fd(pub u32);
 pub const PROCESS_CHILD: fd = fd(0xffffffff);
 /// Passed to [`mem_map()`](fn.mem_map.html) when creating a mapping to
 /// anonymous memory.
-pub const MAP_ANON_FD  : fd = fd(0xffffffff);
+pub const MAP_ANON_FD: fd = fd(0xffffffff);
 
 bitflags! {
   /// File descriptor flags.
@@ -527,34 +527,34 @@ pub type filesize = u64;
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum filetype {
-  /// The type of the file descriptor or file is unknown or
-  /// is different from any of the other types specified.
-  UNKNOWN          =   0,
-  /// The file descriptor or file refers to a block device
-  /// inode.
-  BLOCK_DEVICE     =  16,
-  /// The file descriptor or file refers to a character
-  /// device inode.
-  CHARACTER_DEVICE =  17,
-  /// The file descriptor or file refers to a directory
-  /// inode.
-  DIRECTORY        =  32,
-  /// The file descriptor refers to a process handle.
-  PROCESS          =  80,
-  /// The file descriptor or file refers to a regular file
-  /// inode.
-  REGULAR_FILE     =  96,
-  /// The file descriptor refers to a shared memory object.
-  SHARED_MEMORY    = 112,
-  /// The file descriptor or file refers to a datagram
-  /// socket.
-  SOCKET_DGRAM     = 128,
-  /// The file descriptor or file refers to a byte-stream
-  /// socket.
-  SOCKET_STREAM    = 130,
-  /// The file refers to a symbolic link inode.
-  SYMBOLIC_LINK    = 144,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// The type of the file descriptor or file is unknown or
+    /// is different from any of the other types specified.
+    UNKNOWN = 0,
+    /// The file descriptor or file refers to a block device
+    /// inode.
+    BLOCK_DEVICE = 16,
+    /// The file descriptor or file refers to a character
+    /// device inode.
+    CHARACTER_DEVICE = 17,
+    /// The file descriptor or file refers to a directory
+    /// inode.
+    DIRECTORY = 32,
+    /// The file descriptor refers to a process handle.
+    PROCESS = 80,
+    /// The file descriptor or file refers to a regular file
+    /// inode.
+    REGULAR_FILE = 96,
+    /// The file descriptor refers to a shared memory object.
+    SHARED_MEMORY = 112,
+    /// The file descriptor or file refers to a datagram
+    /// socket.
+    SOCKET_DGRAM = 128,
+    /// The file descriptor or file refers to a byte-stream
+    /// socket.
+    SOCKET_STREAM = 130,
+    /// The file refers to a symbolic link inode.
+    SYMBOLIC_LINK = 144,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 bitflags! {
@@ -594,13 +594,13 @@ pub type linkcount = u32;
 pub struct lock(pub u32);
 /// Value indicating that the lock is in its initial
 /// unlocked state.
-pub const LOCK_UNLOCKED      : lock = lock(0x00000000);
+pub const LOCK_UNLOCKED: lock = lock(0x00000000);
 /// Bitmask indicating that the lock is write-locked. If
 /// set, the lower 30 bits of the lock contain the
 /// identifier of the thread that owns the write lock.
 /// Otherwise, the lower 30 bits of the lock contain the
 /// number of acquired read locks.
-pub const LOCK_WRLOCKED      : lock = lock(0x40000000);
+pub const LOCK_WRLOCKED: lock = lock(0x40000000);
 /// Bitmask indicating that the lock is either read locked
 /// or write locked, and that one or more threads have
 /// their execution suspended, waiting to acquire the
@@ -618,7 +618,7 @@ pub const LOCK_KERNEL_MANAGED: lock = lock(0x80000000);
 /// Value indicating that the lock is in an incorrect
 /// state. A lock cannot be in its initial unlocked state,
 /// while also managed by the kernel.
-pub const LOCK_BOGUS         : lock = lock(0x80000000);
+pub const LOCK_BOGUS: lock = lock(0x80000000);
 
 bitflags! {
   /// Flags determining the method of how paths are resolved.
@@ -844,11 +844,11 @@ bitflags! {
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum scope {
-  /// The object is stored in private memory.
-  PRIVATE = 4,
-  /// The object is stored in shared memory.
-  SHARED  = 8,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// The object is stored in private memory.
+    PRIVATE = 4,
+    /// The object is stored in shared memory.
+    SHARED = 8,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 bitflags! {
@@ -875,111 +875,111 @@ bitflags! {
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum signal {
-  /// Process abort signal.
-  ///
-  /// Action: Terminates the process.
-  ABRT   =  1,
-  /// Alarm clock.
-  ///
-  /// Action: Terminates the process.
-  ALRM   =  2,
-  /// Access to an undefined portion of a memory object.
-  ///
-  /// Action: Terminates the process.
-  BUS    =  3,
-  /// Child process terminated, stopped, or continued.
-  ///
-  /// Action: Ignored.
-  CHLD   =  4,
-  /// Continue executing, if stopped.
-  ///
-  /// Action: Continues executing, if stopped.
-  CONT   =  5,
-  /// Erroneous arithmetic operation.
-  ///
-  /// Action: Terminates the process.
-  FPE    =  6,
-  /// Hangup.
-  ///
-  /// Action: Terminates the process.
-  HUP    =  7,
-  /// Illegal instruction.
-  ///
-  /// Action: Terminates the process.
-  ILL    =  8,
-  /// Terminate interrupt signal.
-  ///
-  /// Action: Terminates the process.
-  INT    =  9,
-  /// Kill.
-  ///
-  /// Action: Terminates the process.
-  KILL   = 10,
-  /// Write on a pipe with no one to read it.
-  ///
-  /// Action: Ignored.
-  PIPE   = 11,
-  /// Terminal quit signal.
-  ///
-  /// Action: Terminates the process.
-  QUIT   = 12,
-  /// Invalid memory reference.
-  ///
-  /// Action: Terminates the process.
-  SEGV   = 13,
-  /// Stop executing.
-  ///
-  /// Action: Stops executing.
-  STOP   = 14,
-  /// Bad system call.
-  ///
-  /// Action: Terminates the process.
-  SYS    = 15,
-  /// Termination signal.
-  ///
-  /// Action: Terminates the process.
-  TERM   = 16,
-  /// Trace/breakpoint trap.
-  ///
-  /// Action: Terminates the process.
-  TRAP   = 17,
-  /// Terminal stop signal.
-  ///
-  /// Action: Stops executing.
-  TSTP   = 18,
-  /// Background process attempting read.
-  ///
-  /// Action: Stops executing.
-  TTIN   = 19,
-  /// Background process attempting write.
-  ///
-  /// Action: Stops executing.
-  TTOU   = 20,
-  /// High bandwidth data is available at a socket.
-  ///
-  /// Action: Ignored.
-  URG    = 21,
-  /// User-defined signal 1.
-  ///
-  /// Action: Terminates the process.
-  USR1   = 22,
-  /// User-defined signal 2.
-  ///
-  /// Action: Terminates the process.
-  USR2   = 23,
-  /// Virtual timer expired.
-  ///
-  /// Action: Terminates the process.
-  VTALRM = 24,
-  /// CPU time limit exceeded.
-  ///
-  /// Action: Terminates the process.
-  XCPU   = 25,
-  /// File size limit exceeded.
-  ///
-  /// Action: Terminates the process.
-  XFSZ   = 26,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// Process abort signal.
+    ///
+    /// Action: Terminates the process.
+    ABRT = 1,
+    /// Alarm clock.
+    ///
+    /// Action: Terminates the process.
+    ALRM = 2,
+    /// Access to an undefined portion of a memory object.
+    ///
+    /// Action: Terminates the process.
+    BUS = 3,
+    /// Child process terminated, stopped, or continued.
+    ///
+    /// Action: Ignored.
+    CHLD = 4,
+    /// Continue executing, if stopped.
+    ///
+    /// Action: Continues executing, if stopped.
+    CONT = 5,
+    /// Erroneous arithmetic operation.
+    ///
+    /// Action: Terminates the process.
+    FPE = 6,
+    /// Hangup.
+    ///
+    /// Action: Terminates the process.
+    HUP = 7,
+    /// Illegal instruction.
+    ///
+    /// Action: Terminates the process.
+    ILL = 8,
+    /// Terminate interrupt signal.
+    ///
+    /// Action: Terminates the process.
+    INT = 9,
+    /// Kill.
+    ///
+    /// Action: Terminates the process.
+    KILL = 10,
+    /// Write on a pipe with no one to read it.
+    ///
+    /// Action: Ignored.
+    PIPE = 11,
+    /// Terminal quit signal.
+    ///
+    /// Action: Terminates the process.
+    QUIT = 12,
+    /// Invalid memory reference.
+    ///
+    /// Action: Terminates the process.
+    SEGV = 13,
+    /// Stop executing.
+    ///
+    /// Action: Stops executing.
+    STOP = 14,
+    /// Bad system call.
+    ///
+    /// Action: Terminates the process.
+    SYS = 15,
+    /// Termination signal.
+    ///
+    /// Action: Terminates the process.
+    TERM = 16,
+    /// Trace/breakpoint trap.
+    ///
+    /// Action: Terminates the process.
+    TRAP = 17,
+    /// Terminal stop signal.
+    ///
+    /// Action: Stops executing.
+    TSTP = 18,
+    /// Background process attempting read.
+    ///
+    /// Action: Stops executing.
+    TTIN = 19,
+    /// Background process attempting write.
+    ///
+    /// Action: Stops executing.
+    TTOU = 20,
+    /// High bandwidth data is available at a socket.
+    ///
+    /// Action: Ignored.
+    URG = 21,
+    /// User-defined signal 1.
+    ///
+    /// Action: Terminates the process.
+    USR1 = 22,
+    /// User-defined signal 2.
+    ///
+    /// Action: Terminates the process.
+    USR2 = 23,
+    /// Virtual timer expired.
+    ///
+    /// Action: Terminates the process.
+    VTALRM = 24,
+    /// CPU time limit exceeded.
+    ///
+    /// Action: Terminates the process.
+    XCPU = 25,
+    /// File size limit exceeded.
+    ///
+    /// Action: Terminates the process.
+    XFSZ = 26,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 bitflags! {
@@ -1046,13 +1046,13 @@ pub type userdata = u64;
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum whence {
-  /// Seek relative to current position.
-  CUR = 1,
-  /// Seek relative to end-of-file.
-  END = 2,
-  /// Seek relative to start-of-file.
-  SET = 3,
-  #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
+    /// Seek relative to current position.
+    CUR = 1,
+    /// Seek relative to end-of-file.
+    END = 2,
+    /// Seek relative to start-of-file.
+    SET = 3,
+    #[doc(hidden)] _NonExhaustive = -1 as isize as u8,
 }
 
 /// Auxiliary vector entry.
@@ -1068,631 +1068,665 @@ pub enum whence {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct auxv {
-  /// The type of the auxiliary vector entry.
-  pub a_type: auxtype,
-  pub union: auxv_union
+    /// The type of the auxiliary vector entry.
+    pub a_type: auxtype,
+    pub union: auxv_union,
 }
 /// A union inside `auxv`.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union auxv_union {
-  /// Used when `a_type` is [`ARGDATALEN`](enum.auxtype.html#variant.ARGDATALEN), [`CANARYLEN`](enum.auxtype.html#variant.CANARYLEN), [`NCPUS`](enum.auxtype.html#variant.NCPUS), [`PAGESZ`](enum.auxtype.html#variant.PAGESZ), [`PHNUM`](enum.auxtype.html#variant.PHNUM), or [`TID`](enum.auxtype.html#variant.TID).
-/// A numerical value.
-  pub a_val: usize,
-  /// Used when `a_type` is [`ARGDATA`](enum.auxtype.html#variant.ARGDATA), [`BASE`](enum.auxtype.html#variant.BASE), [`CANARY`](enum.auxtype.html#variant.CANARY), [`PHDR`](enum.auxtype.html#variant.PHDR), [`PID`](enum.auxtype.html#variant.PID), or [`SYSINFO_EHDR`](enum.auxtype.html#variant.SYSINFO_EHDR).
-/// A pointer value.
-  pub a_ptr: *mut (),
+    /// Used when `a_type` is [`ARGDATALEN`](enum.auxtype.html#variant.ARGDATALEN), [`CANARYLEN`](enum.auxtype.html#variant.CANARYLEN), [`NCPUS`](enum.auxtype.html#variant.NCPUS), [`PAGESZ`](enum.auxtype.html#variant.PAGESZ), [`PHNUM`](enum.auxtype.html#variant.PHNUM), or [`TID`](enum.auxtype.html#variant.TID).
+    /// A numerical value.
+    pub a_val: usize,
+    /// Used when `a_type` is [`ARGDATA`](enum.auxtype.html#variant.ARGDATA), [`BASE`](enum.auxtype.html#variant.BASE), [`CANARY`](enum.auxtype.html#variant.CANARY), [`PHDR`](enum.auxtype.html#variant.PHDR), [`PID`](enum.auxtype.html#variant.PID), or [`SYSINFO_EHDR`](enum.auxtype.html#variant.SYSINFO_EHDR).
+    /// A pointer value.
+    pub a_ptr: *mut (),
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn auxv_layout_test_32() {
-  assert_eq!(core::mem::size_of::<auxv>(), 8);
-  assert_eq!(core::mem::align_of::<auxv>(), 4);
-  unsafe {
-    let obj: auxv = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.a_type as *const _ as usize - base, 0);
-    assert_eq!(&obj.union.a_val as *const _ as usize - base, 4);
-    assert_eq!(&obj.union.a_ptr as *const _ as usize - base, 4);
-  }
+    assert_eq!(core::mem::size_of::<auxv>(), 8);
+    assert_eq!(core::mem::align_of::<auxv>(), 4);
+    unsafe {
+        let obj: auxv = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.a_type as *const _ as usize - base, 0);
+        assert_eq!(&obj.union.a_val as *const _ as usize - base, 4);
+        assert_eq!(&obj.union.a_ptr as *const _ as usize - base, 4);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn auxv_layout_test_64() {
-  assert_eq!(core::mem::size_of::<auxv>(), 16);
-  assert_eq!(core::mem::align_of::<auxv>(), 8);
-  unsafe {
-    let obj: auxv = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.a_type as *const _ as usize - base, 0);
-    assert_eq!(&obj.union.a_val as *const _ as usize - base, 8);
-    assert_eq!(&obj.union.a_ptr as *const _ as usize - base, 8);
-  }
+    assert_eq!(core::mem::size_of::<auxv>(), 16);
+    assert_eq!(core::mem::align_of::<auxv>(), 8);
+    unsafe {
+        let obj: auxv = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.a_type as *const _ as usize - base, 0);
+        assert_eq!(&obj.union.a_val as *const _ as usize - base, 8);
+        assert_eq!(&obj.union.a_ptr as *const _ as usize - base, 8);
+    }
 }
 
 /// A region of memory for scatter/gather writes.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct ciovec {
-  /// The address and length of the buffer to be written.
-  pub buf: (*const (), usize),
+    /// The address and length of the buffer to be written.
+    pub buf: (*const (), usize),
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn ciovec_layout_test_32() {
-  assert_eq!(core::mem::size_of::<ciovec>(), 8);
-  assert_eq!(core::mem::align_of::<ciovec>(), 4);
-  unsafe {
-    let obj: ciovec = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.buf.1 as *const _ as usize - base, 4);
-  }
+    assert_eq!(core::mem::size_of::<ciovec>(), 8);
+    assert_eq!(core::mem::align_of::<ciovec>(), 4);
+    unsafe {
+        let obj: ciovec = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.buf.1 as *const _ as usize - base, 4);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn ciovec_layout_test_64() {
-  assert_eq!(core::mem::size_of::<ciovec>(), 16);
-  assert_eq!(core::mem::align_of::<ciovec>(), 8);
-  unsafe {
-    let obj: ciovec = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.buf.1 as *const _ as usize - base, 8);
-  }
+    assert_eq!(core::mem::size_of::<ciovec>(), 16);
+    assert_eq!(core::mem::align_of::<ciovec>(), 8);
+    unsafe {
+        let obj: ciovec = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.buf.1 as *const _ as usize - base, 8);
+    }
 }
 
 /// A directory entry.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct dirent {
-  /// The offset of the next directory entry stored in this
-  /// directory.
-  pub d_next: dircookie,
-  /// The serial number of the file referred to by this
-  /// directory entry.
-  pub d_ino: inode,
-  /// The length of the name of the directory entry.
-  pub d_namlen: u32,
-  /// The type of the file referred to by this directory
-  /// entry.
-  pub d_type: filetype,
+    /// The offset of the next directory entry stored in this
+    /// directory.
+    pub d_next: dircookie,
+    /// The serial number of the file referred to by this
+    /// directory entry.
+    pub d_ino: inode,
+    /// The length of the name of the directory entry.
+    pub d_namlen: u32,
+    /// The type of the file referred to by this directory
+    /// entry.
+    pub d_type: filetype,
 }
 #[test]
 fn dirent_layout_test() {
-  assert_eq!(core::mem::size_of::<dirent>(), 24);
-  assert_eq!(core::mem::align_of::<dirent>(), 8);
-  unsafe {
-    let obj: dirent = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.d_next as *const _ as usize - base, 0);
-    assert_eq!(&obj.d_ino as *const _ as usize - base, 8);
-    assert_eq!(&obj.d_namlen as *const _ as usize - base, 16);
-    assert_eq!(&obj.d_type as *const _ as usize - base, 20);
-  }
+    assert_eq!(core::mem::size_of::<dirent>(), 24);
+    assert_eq!(core::mem::align_of::<dirent>(), 8);
+    unsafe {
+        let obj: dirent = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.d_next as *const _ as usize - base, 0);
+        assert_eq!(&obj.d_ino as *const _ as usize - base, 8);
+        assert_eq!(&obj.d_namlen as *const _ as usize - base, 16);
+        assert_eq!(&obj.d_type as *const _ as usize - base, 20);
+    }
 }
 
 /// An event that occurred.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct event {
-  /// User-provided value that got attached to
-  /// [`subscription.userdata`](struct.subscription.html#structfield.userdata).
-  pub userdata: userdata,
-  /// If non-zero, an error that occurred while processing
-  /// the subscription request.
-  pub error: errno,
-  /// The type of the event that occurred.
-  pub type_: eventtype,
-  pub union: event_union
+    /// User-provided value that got attached to
+    /// [`subscription.userdata`](struct.subscription.html#structfield.userdata).
+    pub userdata: userdata,
+    /// If non-zero, an error that occurred while processing
+    /// the subscription request.
+    pub error: errno,
+    /// The type of the event that occurred.
+    pub type_: eventtype,
+    pub union: event_union,
 }
 /// A union inside `event`.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union event_union {
-  /// Used when `type_` is [`FD_READ`](enum.eventtype.html#variant.FD_READ) or [`FD_WRITE`](enum.eventtype.html#variant.FD_WRITE).
-  pub fd_readwrite: event_fd_readwrite,
-  /// Used when `type_` is [`PROC_TERMINATE`](enum.eventtype.html#variant.PROC_TERMINATE).
-  pub proc_terminate: event_proc_terminate,
+    /// Used when `type_` is [`FD_READ`](enum.eventtype.html#variant.FD_READ) or [`FD_WRITE`](enum.eventtype.html#variant.FD_WRITE).
+    pub fd_readwrite: event_fd_readwrite,
+    /// Used when `type_` is [`PROC_TERMINATE`](enum.eventtype.html#variant.PROC_TERMINATE).
+    pub proc_terminate: event_proc_terminate,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct event_fd_readwrite {
-  /// The number of bytes available
-  /// for reading or writing.
-  pub nbytes: filesize,
-  /// Obsolete.
-  pub unused: [u8; 4],
-  /// The state of the file
-  /// descriptor.
-  pub flags: eventrwflags,
+    /// The number of bytes available
+    /// for reading or writing.
+    pub nbytes: filesize,
+    /// Obsolete.
+    pub unused: [u8; 4],
+    /// The state of the file
+    /// descriptor.
+    pub flags: eventrwflags,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct event_proc_terminate {
-  /// Obsolete.
-  pub unused: [u8; 4],
-  /// If zero, the process has
-  /// exited.
-  /// Otherwise, the signal
-  /// condition causing it to
-  /// terminated.
-  pub signal: signal,
-  /// If exited, the exit code of
-  /// the process.
-  pub exitcode: exitcode,
+    /// Obsolete.
+    pub unused: [u8; 4],
+    /// If zero, the process has
+    /// exited.
+    /// Otherwise, the signal
+    /// condition causing it to
+    /// terminated.
+    pub signal: signal,
+    /// If exited, the exit code of
+    /// the process.
+    pub exitcode: exitcode,
 }
 #[test]
 fn event_layout_test() {
-  assert_eq!(core::mem::size_of::<event>(), 32);
-  assert_eq!(core::mem::align_of::<event>(), 8);
-  unsafe {
-    let obj: event = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.userdata as *const _ as usize - base, 0);
-    assert_eq!(&obj.error as *const _ as usize - base, 8);
-    assert_eq!(&obj.type_ as *const _ as usize - base, 10);
-    assert_eq!(&obj.union.fd_readwrite.nbytes as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.fd_readwrite.unused as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.fd_readwrite.flags as *const _ as usize - base, 28);
-    assert_eq!(&obj.union.proc_terminate.unused as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.proc_terminate.signal as *const _ as usize - base, 20);
-    assert_eq!(&obj.union.proc_terminate.exitcode as *const _ as usize - base, 24);
-  }
+    assert_eq!(core::mem::size_of::<event>(), 32);
+    assert_eq!(core::mem::align_of::<event>(), 8);
+    unsafe {
+        let obj: event = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.userdata as *const _ as usize - base, 0);
+        assert_eq!(&obj.error as *const _ as usize - base, 8);
+        assert_eq!(&obj.type_ as *const _ as usize - base, 10);
+        assert_eq!(
+            &obj.union.fd_readwrite.nbytes as *const _ as usize - base,
+            16
+        );
+        assert_eq!(
+            &obj.union.fd_readwrite.unused as *const _ as usize - base,
+            24
+        );
+        assert_eq!(
+            &obj.union.fd_readwrite.flags as *const _ as usize - base,
+            28
+        );
+        assert_eq!(
+            &obj.union.proc_terminate.unused as *const _ as usize - base,
+            16
+        );
+        assert_eq!(
+            &obj.union.proc_terminate.signal as *const _ as usize - base,
+            20
+        );
+        assert_eq!(
+            &obj.union.proc_terminate.exitcode as *const _ as usize - base,
+            24
+        );
+    }
 }
 
 /// File descriptor attributes.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct fdstat {
-  /// File type.
-  pub fs_filetype: filetype,
-  /// File descriptor flags.
-  pub fs_flags: fdflags,
-  /// Rights that apply to this file descriptor.
-  pub fs_rights_base: rights,
-  /// Maximum set of rights that can be installed on new
-  /// file descriptors that are created through this file
-  /// descriptor, e.g., through [`file_open()`](fn.file_open.html).
-  pub fs_rights_inheriting: rights,
+    /// File type.
+    pub fs_filetype: filetype,
+    /// File descriptor flags.
+    pub fs_flags: fdflags,
+    /// Rights that apply to this file descriptor.
+    pub fs_rights_base: rights,
+    /// Maximum set of rights that can be installed on new
+    /// file descriptors that are created through this file
+    /// descriptor, e.g., through [`file_open()`](fn.file_open.html).
+    pub fs_rights_inheriting: rights,
 }
 #[test]
 fn fdstat_layout_test() {
-  assert_eq!(core::mem::size_of::<fdstat>(), 24);
-  assert_eq!(core::mem::align_of::<fdstat>(), 8);
-  unsafe {
-    let obj: fdstat = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.fs_filetype as *const _ as usize - base, 0);
-    assert_eq!(&obj.fs_flags as *const _ as usize - base, 2);
-    assert_eq!(&obj.fs_rights_base as *const _ as usize - base, 8);
-    assert_eq!(&obj.fs_rights_inheriting as *const _ as usize - base, 16);
-  }
+    assert_eq!(core::mem::size_of::<fdstat>(), 24);
+    assert_eq!(core::mem::align_of::<fdstat>(), 8);
+    unsafe {
+        let obj: fdstat = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.fs_filetype as *const _ as usize - base, 0);
+        assert_eq!(&obj.fs_flags as *const _ as usize - base, 2);
+        assert_eq!(&obj.fs_rights_base as *const _ as usize - base, 8);
+        assert_eq!(&obj.fs_rights_inheriting as *const _ as usize - base, 16);
+    }
 }
 
 /// File attributes.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct filestat {
-  /// Device ID of device containing the file.
-  pub st_dev: device,
-  /// File serial number.
-  pub st_ino: inode,
-  /// File type.
-  pub st_filetype: filetype,
-  /// Number of hard links to the file.
-  pub st_nlink: linkcount,
-  /// For regular files, the file size in bytes. For
-  /// symbolic links, the length in bytes of the pathname
-  /// contained in the symbolic link.
-  pub st_size: filesize,
-  /// Last data access timestamp.
-  pub st_atim: timestamp,
-  /// Last data modification timestamp.
-  pub st_mtim: timestamp,
-  /// Last file status change timestamp.
-  pub st_ctim: timestamp,
+    /// Device ID of device containing the file.
+    pub st_dev: device,
+    /// File serial number.
+    pub st_ino: inode,
+    /// File type.
+    pub st_filetype: filetype,
+    /// Number of hard links to the file.
+    pub st_nlink: linkcount,
+    /// For regular files, the file size in bytes. For
+    /// symbolic links, the length in bytes of the pathname
+    /// contained in the symbolic link.
+    pub st_size: filesize,
+    /// Last data access timestamp.
+    pub st_atim: timestamp,
+    /// Last data modification timestamp.
+    pub st_mtim: timestamp,
+    /// Last file status change timestamp.
+    pub st_ctim: timestamp,
 }
 #[test]
 fn filestat_layout_test() {
-  assert_eq!(core::mem::size_of::<filestat>(), 56);
-  assert_eq!(core::mem::align_of::<filestat>(), 8);
-  unsafe {
-    let obj: filestat = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.st_dev as *const _ as usize - base, 0);
-    assert_eq!(&obj.st_ino as *const _ as usize - base, 8);
-    assert_eq!(&obj.st_filetype as *const _ as usize - base, 16);
-    assert_eq!(&obj.st_nlink as *const _ as usize - base, 20);
-    assert_eq!(&obj.st_size as *const _ as usize - base, 24);
-    assert_eq!(&obj.st_atim as *const _ as usize - base, 32);
-    assert_eq!(&obj.st_mtim as *const _ as usize - base, 40);
-    assert_eq!(&obj.st_ctim as *const _ as usize - base, 48);
-  }
+    assert_eq!(core::mem::size_of::<filestat>(), 56);
+    assert_eq!(core::mem::align_of::<filestat>(), 8);
+    unsafe {
+        let obj: filestat = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.st_dev as *const _ as usize - base, 0);
+        assert_eq!(&obj.st_ino as *const _ as usize - base, 8);
+        assert_eq!(&obj.st_filetype as *const _ as usize - base, 16);
+        assert_eq!(&obj.st_nlink as *const _ as usize - base, 20);
+        assert_eq!(&obj.st_size as *const _ as usize - base, 24);
+        assert_eq!(&obj.st_atim as *const _ as usize - base, 32);
+        assert_eq!(&obj.st_mtim as *const _ as usize - base, 40);
+        assert_eq!(&obj.st_ctim as *const _ as usize - base, 48);
+    }
 }
 
 /// A region of memory for scatter/gather reads.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct iovec {
-  /// The address and length of the buffer to be filled.
-  pub buf: (*mut (), usize),
+    /// The address and length of the buffer to be filled.
+    pub buf: (*mut (), usize),
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn iovec_layout_test_32() {
-  assert_eq!(core::mem::size_of::<iovec>(), 8);
-  assert_eq!(core::mem::align_of::<iovec>(), 4);
-  unsafe {
-    let obj: iovec = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.buf.1 as *const _ as usize - base, 4);
-  }
+    assert_eq!(core::mem::size_of::<iovec>(), 8);
+    assert_eq!(core::mem::align_of::<iovec>(), 4);
+    unsafe {
+        let obj: iovec = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.buf.1 as *const _ as usize - base, 4);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn iovec_layout_test_64() {
-  assert_eq!(core::mem::size_of::<iovec>(), 16);
-  assert_eq!(core::mem::align_of::<iovec>(), 8);
-  unsafe {
-    let obj: iovec = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.buf.1 as *const _ as usize - base, 8);
-  }
+    assert_eq!(core::mem::size_of::<iovec>(), 16);
+    assert_eq!(core::mem::align_of::<iovec>(), 8);
+    unsafe {
+        let obj: iovec = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.buf.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.buf.1 as *const _ as usize - base, 8);
+    }
 }
 
 /// Path lookup properties.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct lookup {
-  /// The working directory at which the resolution of the
-  /// path starts.
-  pub fd: fd,
-  /// Flags determining the method of how the path is
-  /// resolved.
-  pub flags: lookupflags,
+    /// The working directory at which the resolution of the
+    /// path starts.
+    pub fd: fd,
+    /// Flags determining the method of how the path is
+    /// resolved.
+    pub flags: lookupflags,
 }
 #[test]
 fn lookup_layout_test() {
-  assert_eq!(core::mem::size_of::<lookup>(), 8);
-  assert_eq!(core::mem::align_of::<lookup>(), 4);
-  unsafe {
-    let obj: lookup = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.fd as *const _ as usize - base, 0);
-    assert_eq!(&obj.flags as *const _ as usize - base, 4);
-  }
+    assert_eq!(core::mem::size_of::<lookup>(), 8);
+    assert_eq!(core::mem::align_of::<lookup>(), 4);
+    unsafe {
+        let obj: lookup = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.fd as *const _ as usize - base, 0);
+        assert_eq!(&obj.flags as *const _ as usize - base, 4);
+    }
 }
 
 /// Entry point for a process (`_start`).
 ///
 /// **auxv**:
 /// The auxiliary vector. See [`auxv`](struct.auxv.html).
-pub type processentry = unsafe extern "C" fn(
-  auxv: *const auxv,
-) -> ();
+pub type processentry = unsafe extern "C" fn(auxv: *const auxv) -> ();
 
 /// Arguments of [`sock_recv()`](fn.sock_recv.html).
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct recv_in {
-  /// List of scatter/gather vectors where message data
-  /// should be stored.
-  pub ri_data: (*const iovec, usize),
-  /// Buffer where numbers of incoming file descriptors
-  /// should be stored.
-  pub ri_fds: (*mut fd, usize),
-  /// Message flags.
-  pub ri_flags: riflags,
+    /// List of scatter/gather vectors where message data
+    /// should be stored.
+    pub ri_data: (*const iovec, usize),
+    /// Buffer where numbers of incoming file descriptors
+    /// should be stored.
+    pub ri_fds: (*mut fd, usize),
+    /// Message flags.
+    pub ri_flags: riflags,
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn recv_in_layout_test_32() {
-  assert_eq!(core::mem::size_of::<recv_in>(), 20);
-  assert_eq!(core::mem::align_of::<recv_in>(), 4);
-  unsafe {
-    let obj: recv_in = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.ri_data.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.ri_data.1 as *const _ as usize - base, 4);
-    assert_eq!(&obj.ri_fds.0 as *const _ as usize - base, 8);
-    assert_eq!(&obj.ri_fds.1 as *const _ as usize - base, 12);
-    assert_eq!(&obj.ri_flags as *const _ as usize - base, 16);
-  }
+    assert_eq!(core::mem::size_of::<recv_in>(), 20);
+    assert_eq!(core::mem::align_of::<recv_in>(), 4);
+    unsafe {
+        let obj: recv_in = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.ri_data.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.ri_data.1 as *const _ as usize - base, 4);
+        assert_eq!(&obj.ri_fds.0 as *const _ as usize - base, 8);
+        assert_eq!(&obj.ri_fds.1 as *const _ as usize - base, 12);
+        assert_eq!(&obj.ri_flags as *const _ as usize - base, 16);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn recv_in_layout_test_64() {
-  assert_eq!(core::mem::size_of::<recv_in>(), 40);
-  assert_eq!(core::mem::align_of::<recv_in>(), 8);
-  unsafe {
-    let obj: recv_in = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.ri_data.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.ri_data.1 as *const _ as usize - base, 8);
-    assert_eq!(&obj.ri_fds.0 as *const _ as usize - base, 16);
-    assert_eq!(&obj.ri_fds.1 as *const _ as usize - base, 24);
-    assert_eq!(&obj.ri_flags as *const _ as usize - base, 32);
-  }
+    assert_eq!(core::mem::size_of::<recv_in>(), 40);
+    assert_eq!(core::mem::align_of::<recv_in>(), 8);
+    unsafe {
+        let obj: recv_in = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.ri_data.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.ri_data.1 as *const _ as usize - base, 8);
+        assert_eq!(&obj.ri_fds.0 as *const _ as usize - base, 16);
+        assert_eq!(&obj.ri_fds.1 as *const _ as usize - base, 24);
+        assert_eq!(&obj.ri_flags as *const _ as usize - base, 32);
+    }
 }
 
 /// Results of [`sock_recv()`](fn.sock_recv.html).
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct recv_out {
-  /// Number of bytes stored in [`recv_in.ri_data`](struct.recv_in.html#structfield.ri_data).
-  pub ro_datalen: usize,
-  /// Number of file descriptors stored in [`recv_in.ri_fds`](struct.recv_in.html#structfield.ri_fds).
-  pub ro_fdslen: usize,
-  /// Fields that were used by previous implementations.
-  pub ro_unused: [u8; 40],
-  /// Message flags.
-  pub ro_flags: roflags,
+    /// Number of bytes stored in [`recv_in.ri_data`](struct.recv_in.html#structfield.ri_data).
+    pub ro_datalen: usize,
+    /// Number of file descriptors stored in [`recv_in.ri_fds`](struct.recv_in.html#structfield.ri_fds).
+    pub ro_fdslen: usize,
+    /// Fields that were used by previous implementations.
+    pub ro_unused: [u8; 40],
+    /// Message flags.
+    pub ro_flags: roflags,
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn recv_out_layout_test_32() {
-  assert_eq!(core::mem::size_of::<recv_out>(), 52);
-  assert_eq!(core::mem::align_of::<recv_out>(), 4);
-  unsafe {
-    let obj: recv_out = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.ro_datalen as *const _ as usize - base, 0);
-    assert_eq!(&obj.ro_fdslen as *const _ as usize - base, 4);
-    assert_eq!(&obj.ro_unused as *const _ as usize - base, 8);
-    assert_eq!(&obj.ro_flags as *const _ as usize - base, 48);
-  }
+    assert_eq!(core::mem::size_of::<recv_out>(), 52);
+    assert_eq!(core::mem::align_of::<recv_out>(), 4);
+    unsafe {
+        let obj: recv_out = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.ro_datalen as *const _ as usize - base, 0);
+        assert_eq!(&obj.ro_fdslen as *const _ as usize - base, 4);
+        assert_eq!(&obj.ro_unused as *const _ as usize - base, 8);
+        assert_eq!(&obj.ro_flags as *const _ as usize - base, 48);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn recv_out_layout_test_64() {
-  assert_eq!(core::mem::size_of::<recv_out>(), 64);
-  assert_eq!(core::mem::align_of::<recv_out>(), 8);
-  unsafe {
-    let obj: recv_out = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.ro_datalen as *const _ as usize - base, 0);
-    assert_eq!(&obj.ro_fdslen as *const _ as usize - base, 8);
-    assert_eq!(&obj.ro_unused as *const _ as usize - base, 16);
-    assert_eq!(&obj.ro_flags as *const _ as usize - base, 56);
-  }
+    assert_eq!(core::mem::size_of::<recv_out>(), 64);
+    assert_eq!(core::mem::align_of::<recv_out>(), 8);
+    unsafe {
+        let obj: recv_out = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.ro_datalen as *const _ as usize - base, 0);
+        assert_eq!(&obj.ro_fdslen as *const _ as usize - base, 8);
+        assert_eq!(&obj.ro_unused as *const _ as usize - base, 16);
+        assert_eq!(&obj.ro_flags as *const _ as usize - base, 56);
+    }
 }
 
 /// Arguments of [`sock_send()`](fn.sock_send.html).
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct send_in {
-  /// List of scatter/gather vectors where message data
-  /// should be retrieved.
-  pub si_data: (*const ciovec, usize),
-  /// File descriptors that need to be attached to the
-  /// message.
-  pub si_fds: (*const fd, usize),
-  /// Message flags.
-  pub si_flags: siflags,
+    /// List of scatter/gather vectors where message data
+    /// should be retrieved.
+    pub si_data: (*const ciovec, usize),
+    /// File descriptors that need to be attached to the
+    /// message.
+    pub si_fds: (*const fd, usize),
+    /// Message flags.
+    pub si_flags: siflags,
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn send_in_layout_test_32() {
-  assert_eq!(core::mem::size_of::<send_in>(), 20);
-  assert_eq!(core::mem::align_of::<send_in>(), 4);
-  unsafe {
-    let obj: send_in = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.si_data.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.si_data.1 as *const _ as usize - base, 4);
-    assert_eq!(&obj.si_fds.0 as *const _ as usize - base, 8);
-    assert_eq!(&obj.si_fds.1 as *const _ as usize - base, 12);
-    assert_eq!(&obj.si_flags as *const _ as usize - base, 16);
-  }
+    assert_eq!(core::mem::size_of::<send_in>(), 20);
+    assert_eq!(core::mem::align_of::<send_in>(), 4);
+    unsafe {
+        let obj: send_in = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.si_data.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.si_data.1 as *const _ as usize - base, 4);
+        assert_eq!(&obj.si_fds.0 as *const _ as usize - base, 8);
+        assert_eq!(&obj.si_fds.1 as *const _ as usize - base, 12);
+        assert_eq!(&obj.si_flags as *const _ as usize - base, 16);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn send_in_layout_test_64() {
-  assert_eq!(core::mem::size_of::<send_in>(), 40);
-  assert_eq!(core::mem::align_of::<send_in>(), 8);
-  unsafe {
-    let obj: send_in = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.si_data.0 as *const _ as usize - base, 0);
-    assert_eq!(&obj.si_data.1 as *const _ as usize - base, 8);
-    assert_eq!(&obj.si_fds.0 as *const _ as usize - base, 16);
-    assert_eq!(&obj.si_fds.1 as *const _ as usize - base, 24);
-    assert_eq!(&obj.si_flags as *const _ as usize - base, 32);
-  }
+    assert_eq!(core::mem::size_of::<send_in>(), 40);
+    assert_eq!(core::mem::align_of::<send_in>(), 8);
+    unsafe {
+        let obj: send_in = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.si_data.0 as *const _ as usize - base, 0);
+        assert_eq!(&obj.si_data.1 as *const _ as usize - base, 8);
+        assert_eq!(&obj.si_fds.0 as *const _ as usize - base, 16);
+        assert_eq!(&obj.si_fds.1 as *const _ as usize - base, 24);
+        assert_eq!(&obj.si_flags as *const _ as usize - base, 32);
+    }
 }
 
 /// Results of [`sock_send()`](fn.sock_send.html).
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct send_out {
-  /// Number of bytes transmitted.
-  pub so_datalen: usize,
+    /// Number of bytes transmitted.
+    pub so_datalen: usize,
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn send_out_layout_test_32() {
-  assert_eq!(core::mem::size_of::<send_out>(), 4);
-  assert_eq!(core::mem::align_of::<send_out>(), 4);
-  unsafe {
-    let obj: send_out = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.so_datalen as *const _ as usize - base, 0);
-  }
+    assert_eq!(core::mem::size_of::<send_out>(), 4);
+    assert_eq!(core::mem::align_of::<send_out>(), 4);
+    unsafe {
+        let obj: send_out = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.so_datalen as *const _ as usize - base, 0);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn send_out_layout_test_64() {
-  assert_eq!(core::mem::size_of::<send_out>(), 8);
-  assert_eq!(core::mem::align_of::<send_out>(), 8);
-  unsafe {
-    let obj: send_out = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.so_datalen as *const _ as usize - base, 0);
-  }
+    assert_eq!(core::mem::size_of::<send_out>(), 8);
+    assert_eq!(core::mem::align_of::<send_out>(), 8);
+    unsafe {
+        let obj: send_out = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.so_datalen as *const _ as usize - base, 0);
+    }
 }
 
 /// Subscription to an event.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription {
-  /// User-provided value that is attached to the
-  /// subscription in the kernel and returned through
-  /// [`event.userdata`](struct.event.html#structfield.userdata).
-  pub userdata: userdata,
-  /// Used by previous implementations. Ignored.
-  pub unused: u16,
-  /// The type of the event to which to subscribe.
-  ///
-  /// Currently, [`CONDVAR`](enum.eventtype.html#variant.CONDVAR),
-  /// [`LOCK_RDLOCK`](enum.eventtype.html#variant.LOCK_RDLOCK), and [`LOCK_WRLOCK`](enum.eventtype.html#variant.LOCK_WRLOCK)
-  /// must be provided as the first subscription and may
-  /// only be followed by up to one other subscription,
-  /// having type [`CLOCK`](enum.eventtype.html#variant.CLOCK).
-  pub type_: eventtype,
-  pub union: subscription_union
+    /// User-provided value that is attached to the
+    /// subscription in the kernel and returned through
+    /// [`event.userdata`](struct.event.html#structfield.userdata).
+    pub userdata: userdata,
+    /// Used by previous implementations. Ignored.
+    pub unused: u16,
+    /// The type of the event to which to subscribe.
+    ///
+    /// Currently, [`CONDVAR`](enum.eventtype.html#variant.CONDVAR),
+    /// [`LOCK_RDLOCK`](enum.eventtype.html#variant.LOCK_RDLOCK), and [`LOCK_WRLOCK`](enum.eventtype.html#variant.LOCK_WRLOCK)
+    /// must be provided as the first subscription and may
+    /// only be followed by up to one other subscription,
+    /// having type [`CLOCK`](enum.eventtype.html#variant.CLOCK).
+    pub type_: eventtype,
+    pub union: subscription_union,
 }
 /// A union inside `subscription`.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union subscription_union {
-  /// Used when `type_` is [`CLOCK`](enum.eventtype.html#variant.CLOCK).
-  pub clock: subscription_clock,
-  /// Used when `type_` is [`CONDVAR`](enum.eventtype.html#variant.CONDVAR).
-  pub condvar: subscription_condvar,
-  /// Used when `type_` is [`FD_READ`](enum.eventtype.html#variant.FD_READ) or [`FD_WRITE`](enum.eventtype.html#variant.FD_WRITE).
-  pub fd_readwrite: subscription_fd_readwrite,
-  /// Used when `type_` is [`LOCK_RDLOCK`](enum.eventtype.html#variant.LOCK_RDLOCK) or [`LOCK_WRLOCK`](enum.eventtype.html#variant.LOCK_WRLOCK).
-  pub lock: subscription_lock,
-  /// Used when `type_` is [`PROC_TERMINATE`](enum.eventtype.html#variant.PROC_TERMINATE).
-  pub proc_terminate: subscription_proc_terminate,
+    /// Used when `type_` is [`CLOCK`](enum.eventtype.html#variant.CLOCK).
+    pub clock: subscription_clock,
+    /// Used when `type_` is [`CONDVAR`](enum.eventtype.html#variant.CONDVAR).
+    pub condvar: subscription_condvar,
+    /// Used when `type_` is [`FD_READ`](enum.eventtype.html#variant.FD_READ) or [`FD_WRITE`](enum.eventtype.html#variant.FD_WRITE).
+    pub fd_readwrite: subscription_fd_readwrite,
+    /// Used when `type_` is [`LOCK_RDLOCK`](enum.eventtype.html#variant.LOCK_RDLOCK) or [`LOCK_WRLOCK`](enum.eventtype.html#variant.LOCK_WRLOCK).
+    pub lock: subscription_lock,
+    /// Used when `type_` is [`PROC_TERMINATE`](enum.eventtype.html#variant.PROC_TERMINATE).
+    pub proc_terminate: subscription_proc_terminate,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription_clock {
-  /// The user-defined unique
-  /// identifier of the clock.
-  pub identifier: userdata,
-  /// The clock against which the
-  /// timestamp should be compared.
-  pub clock_id: clockid,
-  /// The absolute or relative
-  /// timestamp.
-  pub timeout: timestamp,
-  /// The amount of time that the
-  /// kernel may wait additionally
-  /// to coalesce with other events.
-  pub precision: timestamp,
-  /// Flags specifying whether the
-  /// timeout is absolute or
-  /// relative.
-  pub flags: subclockflags,
+    /// The user-defined unique
+    /// identifier of the clock.
+    pub identifier: userdata,
+    /// The clock against which the
+    /// timestamp should be compared.
+    pub clock_id: clockid,
+    /// The absolute or relative
+    /// timestamp.
+    pub timeout: timestamp,
+    /// The amount of time that the
+    /// kernel may wait additionally
+    /// to coalesce with other events.
+    pub precision: timestamp,
+    /// Flags specifying whether the
+    /// timeout is absolute or
+    /// relative.
+    pub flags: subclockflags,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription_condvar {
-  /// The condition variable on
-  /// which to wait to be woken up.
-  pub condvar: *mut condvar,
-  /// The lock that will be
-  /// released while waiting.
-  ///
-  /// The lock will be reacquired
-  /// for writing when the condition
-  /// variable triggers.
-  pub lock: *mut lock,
-  /// Whether the condition variable
-  /// is stored in private or shared
-  /// memory.
-  pub condvar_scope: scope,
-  /// Whether the lock is stored in
-  /// private or shared memory.
-  pub lock_scope: scope,
+    /// The condition variable on
+    /// which to wait to be woken up.
+    pub condvar: *mut condvar,
+    /// The lock that will be
+    /// released while waiting.
+    ///
+    /// The lock will be reacquired
+    /// for writing when the condition
+    /// variable triggers.
+    pub lock: *mut lock,
+    /// Whether the condition variable
+    /// is stored in private or shared
+    /// memory.
+    pub condvar_scope: scope,
+    /// Whether the lock is stored in
+    /// private or shared memory.
+    pub lock_scope: scope,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription_fd_readwrite {
-  /// The file descriptor on which
-  /// to wait for it to become ready
-  /// for reading or writing.
-  pub fd: fd,
-  /// Under which conditions to
-  /// trigger.
-  pub flags: subrwflags,
+    /// The file descriptor on which
+    /// to wait for it to become ready
+    /// for reading or writing.
+    pub fd: fd,
+    /// Under which conditions to
+    /// trigger.
+    pub flags: subrwflags,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription_lock {
-  /// The lock that will be acquired
-  /// for reading or writing.
-  pub lock: *mut lock,
-  /// Whether the lock is stored in
-  /// private or shared memory.
-  pub lock_scope: scope,
+    /// The lock that will be acquired
+    /// for reading or writing.
+    pub lock: *mut lock,
+    /// Whether the lock is stored in
+    /// private or shared memory.
+    pub lock_scope: scope,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct subscription_proc_terminate {
-  /// The process descriptor on
-  /// which to wait for process
-  /// termination.
-  pub fd: fd,
+    /// The process descriptor on
+    /// which to wait for process
+    /// termination.
+    pub fd: fd,
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn subscription_layout_test_32() {
-  assert_eq!(core::mem::size_of::<subscription>(), 56);
-  assert_eq!(core::mem::align_of::<subscription>(), 8);
-  unsafe {
-    let obj: subscription = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.userdata as *const _ as usize - base, 0);
-    assert_eq!(&obj.unused as *const _ as usize - base, 8);
-    assert_eq!(&obj.type_ as *const _ as usize - base, 10);
-    assert_eq!(&obj.union.clock.identifier as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.clock.clock_id as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.clock.timeout as *const _ as usize - base, 32);
-    assert_eq!(&obj.union.clock.precision as *const _ as usize - base, 40);
-    assert_eq!(&obj.union.clock.flags as *const _ as usize - base, 48);
-    assert_eq!(&obj.union.condvar.condvar as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.condvar.lock as *const _ as usize - base, 20);
-    assert_eq!(&obj.union.condvar.condvar_scope as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.condvar.lock_scope as *const _ as usize - base, 25);
-    assert_eq!(&obj.union.fd_readwrite.fd as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.fd_readwrite.flags as *const _ as usize - base, 20);
-    assert_eq!(&obj.union.lock.lock as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.lock.lock_scope as *const _ as usize - base, 20);
-    assert_eq!(&obj.union.proc_terminate.fd as *const _ as usize - base, 16);
-  }
+    assert_eq!(core::mem::size_of::<subscription>(), 56);
+    assert_eq!(core::mem::align_of::<subscription>(), 8);
+    unsafe {
+        let obj: subscription = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.userdata as *const _ as usize - base, 0);
+        assert_eq!(&obj.unused as *const _ as usize - base, 8);
+        assert_eq!(&obj.type_ as *const _ as usize - base, 10);
+        assert_eq!(&obj.union.clock.identifier as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.clock.clock_id as *const _ as usize - base, 24);
+        assert_eq!(&obj.union.clock.timeout as *const _ as usize - base, 32);
+        assert_eq!(&obj.union.clock.precision as *const _ as usize - base, 40);
+        assert_eq!(&obj.union.clock.flags as *const _ as usize - base, 48);
+        assert_eq!(&obj.union.condvar.condvar as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.condvar.lock as *const _ as usize - base, 20);
+        assert_eq!(
+            &obj.union.condvar.condvar_scope as *const _ as usize - base,
+            24
+        );
+        assert_eq!(
+            &obj.union.condvar.lock_scope as *const _ as usize - base,
+            25
+        );
+        assert_eq!(&obj.union.fd_readwrite.fd as *const _ as usize - base, 16);
+        assert_eq!(
+            &obj.union.fd_readwrite.flags as *const _ as usize - base,
+            20
+        );
+        assert_eq!(&obj.union.lock.lock as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.lock.lock_scope as *const _ as usize - base, 20);
+        assert_eq!(&obj.union.proc_terminate.fd as *const _ as usize - base, 16);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn subscription_layout_test_64() {
-  assert_eq!(core::mem::size_of::<subscription>(), 56);
-  assert_eq!(core::mem::align_of::<subscription>(), 8);
-  unsafe {
-    let obj: subscription = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.userdata as *const _ as usize - base, 0);
-    assert_eq!(&obj.unused as *const _ as usize - base, 8);
-    assert_eq!(&obj.type_ as *const _ as usize - base, 10);
-    assert_eq!(&obj.union.clock.identifier as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.clock.clock_id as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.clock.timeout as *const _ as usize - base, 32);
-    assert_eq!(&obj.union.clock.precision as *const _ as usize - base, 40);
-    assert_eq!(&obj.union.clock.flags as *const _ as usize - base, 48);
-    assert_eq!(&obj.union.condvar.condvar as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.condvar.lock as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.condvar.condvar_scope as *const _ as usize - base, 32);
-    assert_eq!(&obj.union.condvar.lock_scope as *const _ as usize - base, 33);
-    assert_eq!(&obj.union.fd_readwrite.fd as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.fd_readwrite.flags as *const _ as usize - base, 20);
-    assert_eq!(&obj.union.lock.lock as *const _ as usize - base, 16);
-    assert_eq!(&obj.union.lock.lock_scope as *const _ as usize - base, 24);
-    assert_eq!(&obj.union.proc_terminate.fd as *const _ as usize - base, 16);
-  }
+    assert_eq!(core::mem::size_of::<subscription>(), 56);
+    assert_eq!(core::mem::align_of::<subscription>(), 8);
+    unsafe {
+        let obj: subscription = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.userdata as *const _ as usize - base, 0);
+        assert_eq!(&obj.unused as *const _ as usize - base, 8);
+        assert_eq!(&obj.type_ as *const _ as usize - base, 10);
+        assert_eq!(&obj.union.clock.identifier as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.clock.clock_id as *const _ as usize - base, 24);
+        assert_eq!(&obj.union.clock.timeout as *const _ as usize - base, 32);
+        assert_eq!(&obj.union.clock.precision as *const _ as usize - base, 40);
+        assert_eq!(&obj.union.clock.flags as *const _ as usize - base, 48);
+        assert_eq!(&obj.union.condvar.condvar as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.condvar.lock as *const _ as usize - base, 24);
+        assert_eq!(
+            &obj.union.condvar.condvar_scope as *const _ as usize - base,
+            32
+        );
+        assert_eq!(
+            &obj.union.condvar.lock_scope as *const _ as usize - base,
+            33
+        );
+        assert_eq!(&obj.union.fd_readwrite.fd as *const _ as usize - base, 16);
+        assert_eq!(
+            &obj.union.fd_readwrite.flags as *const _ as usize - base,
+            20
+        );
+        assert_eq!(&obj.union.lock.lock as *const _ as usize - base, 16);
+        assert_eq!(&obj.union.lock.lock_scope as *const _ as usize - base, 24);
+        assert_eq!(&obj.union.proc_terminate.fd as *const _ as usize - base, 16);
+    }
 }
 
 /// The Thread Control Block (TCB).
@@ -1717,31 +1751,31 @@ fn subscription_layout_test_64() {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct tcb {
-  /// Pointer that may be freely assigned by the system. Its
-  /// value cannot be interpreted by the application.
-  pub parent: *mut (),
+    /// Pointer that may be freely assigned by the system. Its
+    /// value cannot be interpreted by the application.
+    pub parent: *mut (),
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn tcb_layout_test_32() {
-  assert_eq!(core::mem::size_of::<tcb>(), 4);
-  assert_eq!(core::mem::align_of::<tcb>(), 4);
-  unsafe {
-    let obj: tcb = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.parent as *const _ as usize - base, 0);
-  }
+    assert_eq!(core::mem::size_of::<tcb>(), 4);
+    assert_eq!(core::mem::align_of::<tcb>(), 4);
+    unsafe {
+        let obj: tcb = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.parent as *const _ as usize - base, 0);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn tcb_layout_test_64() {
-  assert_eq!(core::mem::size_of::<tcb>(), 8);
-  assert_eq!(core::mem::align_of::<tcb>(), 8);
-  unsafe {
-    let obj: tcb = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.parent as *const _ as usize - base, 0);
-  }
+    assert_eq!(core::mem::size_of::<tcb>(), 8);
+    assert_eq!(core::mem::align_of::<tcb>(), 8);
+    unsafe {
+        let obj: tcb = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.parent as *const _ as usize - base, 0);
+    }
 }
 
 /// Entry point for additionally created threads.
@@ -1752,108 +1786,137 @@ fn tcb_layout_test_64() {
 /// **aux**:
 /// Copy of the value stored in
 /// [`threadattr.argument`](struct.threadattr.html#structfield.argument).
-pub type threadentry = unsafe extern "C" fn(
-  tid: tid,
-  aux: *mut (),
-) -> ();
+pub type threadentry = unsafe extern "C" fn(tid: tid, aux: *mut ()) -> ();
 
 /// Attributes for thread creation.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct threadattr {
-  /// Initial program counter value.
-  pub entry_point: threadentry,
-  /// Region allocated to serve as stack space.
-  pub stack: (*mut (), usize),
-  /// Argument to be forwarded to the entry point function.
-  pub argument: *mut (),
+    /// Initial program counter value.
+    pub entry_point: threadentry,
+    /// Region allocated to serve as stack space.
+    pub stack: (*mut (), usize),
+    /// Argument to be forwarded to the entry point function.
+    pub argument: *mut (),
 }
 #[test]
 #[cfg(target_pointer_width = "32")]
 fn threadattr_layout_test_32() {
-  assert_eq!(core::mem::size_of::<threadattr>(), 16);
-  assert_eq!(core::mem::align_of::<threadattr>(), 4);
-  unsafe {
-    let obj: threadattr = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.entry_point as *const _ as usize - base, 0);
-    assert_eq!(&obj.stack.0 as *const _ as usize - base, 4);
-    assert_eq!(&obj.stack.1 as *const _ as usize - base, 8);
-    assert_eq!(&obj.argument as *const _ as usize - base, 12);
-  }
+    assert_eq!(core::mem::size_of::<threadattr>(), 16);
+    assert_eq!(core::mem::align_of::<threadattr>(), 4);
+    unsafe {
+        let obj: threadattr = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.entry_point as *const _ as usize - base, 0);
+        assert_eq!(&obj.stack.0 as *const _ as usize - base, 4);
+        assert_eq!(&obj.stack.1 as *const _ as usize - base, 8);
+        assert_eq!(&obj.argument as *const _ as usize - base, 12);
+    }
 }
 #[test]
 #[cfg(target_pointer_width = "64")]
 fn threadattr_layout_test_64() {
-  assert_eq!(core::mem::size_of::<threadattr>(), 32);
-  assert_eq!(core::mem::align_of::<threadattr>(), 8);
-  unsafe {
-    let obj: threadattr = core::mem::uninitialized();
-    let base = &obj as *const _ as usize;
-    assert_eq!(&obj.entry_point as *const _ as usize - base, 0);
-    assert_eq!(&obj.stack.0 as *const _ as usize - base, 8);
-    assert_eq!(&obj.stack.1 as *const _ as usize - base, 16);
-    assert_eq!(&obj.argument as *const _ as usize - base, 24);
-  }
+    assert_eq!(core::mem::size_of::<threadattr>(), 32);
+    assert_eq!(core::mem::align_of::<threadattr>(), 8);
+    unsafe {
+        let obj: threadattr = core::mem::uninitialized();
+        let base = &obj as *const _ as usize;
+        assert_eq!(&obj.entry_point as *const _ as usize - base, 0);
+        assert_eq!(&obj.stack.0 as *const _ as usize - base, 8);
+        assert_eq!(&obj.stack.1 as *const _ as usize - base, 16);
+        assert_eq!(&obj.argument as *const _ as usize - base, 24);
+    }
 }
 
 /// The table with pointers to all syscall implementations.
 #[repr(C)]
 #[derive(Clone)]
 pub struct syscalls {
-  pub clock_res_get: unsafe extern "C" fn(_: clockid, _: *mut timestamp) -> errno,
-  pub clock_time_get: unsafe extern "C" fn(_: clockid, _: timestamp, _: *mut timestamp) -> errno,
-  pub condvar_signal: unsafe extern "C" fn(_: *mut condvar, _: scope, _: nthreads) -> errno,
-  pub fd_close: unsafe extern "C" fn(_: fd) -> errno,
-  pub fd_create1: unsafe extern "C" fn(_: filetype, _: *mut fd) -> errno,
-  pub fd_create2: unsafe extern "C" fn(_: filetype, _: *mut fd, _: *mut fd) -> errno,
-  pub fd_datasync: unsafe extern "C" fn(_: fd) -> errno,
-  pub fd_dup: unsafe extern "C" fn(_: fd, _: *mut fd) -> errno,
-  pub fd_pread: unsafe extern "C" fn(_: fd, _: *const iovec, _: usize, _: filesize, _: *mut usize) -> errno,
-  pub fd_pwrite: unsafe extern "C" fn(_: fd, _: *const ciovec, _: usize, _: filesize, _: *mut usize) -> errno,
-  pub fd_read: unsafe extern "C" fn(_: fd, _: *const iovec, _: usize, _: *mut usize) -> errno,
-  pub fd_replace: unsafe extern "C" fn(_: fd, _: fd) -> errno,
-  pub fd_seek: unsafe extern "C" fn(_: fd, _: filedelta, _: whence, _: *mut filesize) -> errno,
-  pub fd_stat_get: unsafe extern "C" fn(_: fd, _: *mut fdstat) -> errno,
-  pub fd_stat_put: unsafe extern "C" fn(_: fd, _: *const fdstat, _: fdsflags) -> errno,
-  pub fd_sync: unsafe extern "C" fn(_: fd) -> errno,
-  pub fd_write: unsafe extern "C" fn(_: fd, _: *const ciovec, _: usize, _: *mut usize) -> errno,
-  pub file_advise: unsafe extern "C" fn(_: fd, _: filesize, _: filesize, _: advice) -> errno,
-  pub file_allocate: unsafe extern "C" fn(_: fd, _: filesize, _: filesize) -> errno,
-  pub file_create: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: filetype) -> errno,
-  pub file_link: unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: fd, _: *const u8, _: usize) -> errno,
-  pub file_open: unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: oflags, _: *const fdstat, _: *mut fd) -> errno,
-  pub file_readdir: unsafe extern "C" fn(_: fd, _: *mut (), _: usize, _: dircookie, _: *mut usize) -> errno,
-  pub file_readlink: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: *mut u8, _: usize, _: *mut usize) -> errno,
-  pub file_rename: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: fd, _: *const u8, _: usize) -> errno,
-  pub file_stat_fget: unsafe extern "C" fn(_: fd, _: *mut filestat) -> errno,
-  pub file_stat_fput: unsafe extern "C" fn(_: fd, _: *const filestat, _: fsflags) -> errno,
-  pub file_stat_get: unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: *mut filestat) -> errno,
-  pub file_stat_put: unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: *const filestat, _: fsflags) -> errno,
-  pub file_symlink: unsafe extern "C" fn(_: *const u8, _: usize, _: fd, _: *const u8, _: usize) -> errno,
-  pub file_unlink: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: ulflags) -> errno,
-  pub lock_unlock: unsafe extern "C" fn(_: *mut lock, _: scope) -> errno,
-  pub mem_advise: unsafe extern "C" fn(_: *mut (), _: usize, _: advice) -> errno,
-  pub mem_map: unsafe extern "C" fn(_: *mut (), _: usize, _: mprot, _: mflags, _: fd, _: filesize, _: *mut *mut ()) -> errno,
-  pub mem_protect: unsafe extern "C" fn(_: *mut (), _: usize, _: mprot) -> errno,
-  pub mem_sync: unsafe extern "C" fn(_: *mut (), _: usize, _: msflags) -> errno,
-  pub mem_unmap: unsafe extern "C" fn(_: *mut (), _: usize) -> errno,
-  pub poll: unsafe extern "C" fn(_: *const subscription, _: *mut event, _: usize, _: *mut usize) -> errno,
-  pub proc_exec: unsafe extern "C" fn(_: fd, _: *const (), _: usize, _: *const fd, _: usize) -> errno,
-  pub proc_exit: unsafe extern "C" fn(_: exitcode) -> !,
-  pub proc_fork: unsafe extern "C" fn(_: *mut fd, _: *mut tid) -> errno,
-  pub proc_raise: unsafe extern "C" fn(_: signal) -> errno,
-  pub random_get: unsafe extern "C" fn(_: *mut (), _: usize) -> errno,
-  pub sock_recv: unsafe extern "C" fn(_: fd, _: *const recv_in, _: *mut recv_out) -> errno,
-  pub sock_send: unsafe extern "C" fn(_: fd, _: *const send_in, _: *mut send_out) -> errno,
-  pub sock_shutdown: unsafe extern "C" fn(_: fd, _: sdflags) -> errno,
-  pub thread_create: unsafe extern "C" fn(_: *mut threadattr, _: *mut tid) -> errno,
-  pub thread_exit: unsafe extern "C" fn(_: *mut lock, _: scope) -> !,
-  pub thread_yield: unsafe extern "C" fn() -> errno,
+    pub clock_res_get: unsafe extern "C" fn(_: clockid, _: *mut timestamp) -> errno,
+    pub clock_time_get: unsafe extern "C" fn(_: clockid, _: timestamp, _: *mut timestamp) -> errno,
+    pub condvar_signal: unsafe extern "C" fn(_: *mut condvar, _: scope, _: nthreads) -> errno,
+    pub fd_close: unsafe extern "C" fn(_: fd) -> errno,
+    pub fd_create1: unsafe extern "C" fn(_: filetype, _: *mut fd) -> errno,
+    pub fd_create2: unsafe extern "C" fn(_: filetype, _: *mut fd, _: *mut fd) -> errno,
+    pub fd_datasync: unsafe extern "C" fn(_: fd) -> errno,
+    pub fd_dup: unsafe extern "C" fn(_: fd, _: *mut fd) -> errno,
+    pub fd_pread:
+        unsafe extern "C" fn(_: fd, _: *const iovec, _: usize, _: filesize, _: *mut usize) -> errno,
+    pub fd_pwrite:
+        unsafe extern "C" fn(_: fd, _: *const ciovec, _: usize, _: filesize, _: *mut usize)
+            -> errno,
+    pub fd_read: unsafe extern "C" fn(_: fd, _: *const iovec, _: usize, _: *mut usize) -> errno,
+    pub fd_replace: unsafe extern "C" fn(_: fd, _: fd) -> errno,
+    pub fd_seek: unsafe extern "C" fn(_: fd, _: filedelta, _: whence, _: *mut filesize) -> errno,
+    pub fd_stat_get: unsafe extern "C" fn(_: fd, _: *mut fdstat) -> errno,
+    pub fd_stat_put: unsafe extern "C" fn(_: fd, _: *const fdstat, _: fdsflags) -> errno,
+    pub fd_sync: unsafe extern "C" fn(_: fd) -> errno,
+    pub fd_write: unsafe extern "C" fn(_: fd, _: *const ciovec, _: usize, _: *mut usize) -> errno,
+    pub file_advise: unsafe extern "C" fn(_: fd, _: filesize, _: filesize, _: advice) -> errno,
+    pub file_allocate: unsafe extern "C" fn(_: fd, _: filesize, _: filesize) -> errno,
+    pub file_create: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: filetype) -> errno,
+    pub file_link:
+        unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: fd, _: *const u8, _: usize)
+            -> errno,
+    pub file_open: unsafe extern "C" fn(
+        _: lookup,
+        _: *const u8,
+        _: usize,
+        _: oflags,
+        _: *const fdstat,
+        _: *mut fd,
+    ) -> errno,
+    pub file_readdir:
+        unsafe extern "C" fn(_: fd, _: *mut (), _: usize, _: dircookie, _: *mut usize) -> errno,
+    pub file_readlink:
+        unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: *mut u8, _: usize, _: *mut usize)
+            -> errno,
+    pub file_rename:
+        unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: fd, _: *const u8, _: usize) -> errno,
+    pub file_stat_fget: unsafe extern "C" fn(_: fd, _: *mut filestat) -> errno,
+    pub file_stat_fput: unsafe extern "C" fn(_: fd, _: *const filestat, _: fsflags) -> errno,
+    pub file_stat_get:
+        unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: *mut filestat) -> errno,
+    pub file_stat_put:
+        unsafe extern "C" fn(_: lookup, _: *const u8, _: usize, _: *const filestat, _: fsflags)
+            -> errno,
+    pub file_symlink:
+        unsafe extern "C" fn(_: *const u8, _: usize, _: fd, _: *const u8, _: usize) -> errno,
+    pub file_unlink: unsafe extern "C" fn(_: fd, _: *const u8, _: usize, _: ulflags) -> errno,
+    pub lock_unlock: unsafe extern "C" fn(_: *mut lock, _: scope) -> errno,
+    pub mem_advise: unsafe extern "C" fn(_: *mut (), _: usize, _: advice) -> errno,
+    pub mem_map: unsafe extern "C" fn(
+        _: *mut (),
+        _: usize,
+        _: mprot,
+        _: mflags,
+        _: fd,
+        _: filesize,
+        _: *mut *mut (),
+    ) -> errno,
+    pub mem_protect: unsafe extern "C" fn(_: *mut (), _: usize, _: mprot) -> errno,
+    pub mem_sync: unsafe extern "C" fn(_: *mut (), _: usize, _: msflags) -> errno,
+    pub mem_unmap: unsafe extern "C" fn(_: *mut (), _: usize) -> errno,
+    pub poll: unsafe extern "C" fn(_: *const subscription, _: *mut event, _: usize, _: *mut usize)
+        -> errno,
+    pub proc_exec:
+        unsafe extern "C" fn(_: fd, _: *const (), _: usize, _: *const fd, _: usize) -> errno,
+    pub proc_exit: unsafe extern "C" fn(_: exitcode) -> !,
+    pub proc_fork: unsafe extern "C" fn(_: *mut fd, _: *mut tid) -> errno,
+    pub proc_raise: unsafe extern "C" fn(_: signal) -> errno,
+    pub random_get: unsafe extern "C" fn(_: *mut (), _: usize) -> errno,
+    pub sock_recv: unsafe extern "C" fn(_: fd, _: *const recv_in, _: *mut recv_out) -> errno,
+    pub sock_send: unsafe extern "C" fn(_: fd, _: *const send_in, _: *mut send_out) -> errno,
+    pub sock_shutdown: unsafe extern "C" fn(_: fd, _: sdflags) -> errno,
+    pub thread_create: unsafe extern "C" fn(_: *mut threadattr, _: *mut tid) -> errno,
+    pub thread_exit: unsafe extern "C" fn(_: *mut lock, _: scope) -> !,
+    pub thread_yield: unsafe extern "C" fn() -> errno,
 }
 
 #[allow(improper_ctypes)]
-extern "C" { static cloudabi_syscalls: syscalls; }
+extern "C" {
+    static cloudabi_syscalls: syscalls;
+}
 
 /// Obtains the resolution of a clock.
 ///
@@ -1867,7 +1930,7 @@ extern "C" { static cloudabi_syscalls: syscalls; }
 /// The resolution of the clock.
 #[inline]
 pub unsafe fn clock_res_get(clock_id_: clockid, resolution_: &mut timestamp) -> errno {
-  (cloudabi_syscalls.clock_res_get)(clock_id_, resolution_)
+    (cloudabi_syscalls.clock_res_get)(clock_id_, resolution_)
 }
 
 /// Obtains the time value of a clock.
@@ -1886,8 +1949,12 @@ pub unsafe fn clock_res_get(clock_id_: clockid, resolution_: &mut timestamp) -> 
 /// **time**:
 /// The time value of the clock.
 #[inline]
-pub unsafe fn clock_time_get(clock_id_: clockid, precision_: timestamp, time_: &mut timestamp) -> errno {
-  (cloudabi_syscalls.clock_time_get)(clock_id_, precision_, time_)
+pub unsafe fn clock_time_get(
+    clock_id_: clockid,
+    precision_: timestamp,
+    time_: &mut timestamp,
+) -> errno {
+    (cloudabi_syscalls.clock_time_get)(clock_id_, precision_, time_)
 }
 
 /// Wakes up threads waiting on a userspace condition variable.
@@ -1914,7 +1981,7 @@ pub unsafe fn clock_time_get(clock_id_: clockid, precision_: timestamp, time_: &
 /// threads, all threads are woken up.
 #[inline]
 pub unsafe fn condvar_signal(condvar_: *mut condvar, scope_: scope, nwaiters_: nthreads) -> errno {
-  (cloudabi_syscalls.condvar_signal)(condvar_, scope_, nwaiters_)
+    (cloudabi_syscalls.condvar_signal)(condvar_, scope_, nwaiters_)
 }
 
 /// Closes a file descriptor.
@@ -1925,7 +1992,7 @@ pub unsafe fn condvar_signal(condvar_: *mut condvar, scope_: scope, nwaiters_: n
 /// The file descriptor that needs to be closed.
 #[inline]
 pub unsafe fn fd_close(fd_: fd) -> errno {
-  (cloudabi_syscalls.fd_close)(fd_)
+    (cloudabi_syscalls.fd_close)(fd_)
 }
 
 /// Creates a file descriptor.
@@ -1943,7 +2010,7 @@ pub unsafe fn fd_close(fd_: fd) -> errno {
 /// The file descriptor that has been created.
 #[inline]
 pub unsafe fn fd_create1(type_: filetype, fd_: &mut fd) -> errno {
-  (cloudabi_syscalls.fd_create1)(type_, fd_)
+    (cloudabi_syscalls.fd_create1)(type_, fd_)
 }
 
 /// Creates a pair of file descriptors.
@@ -1966,7 +2033,7 @@ pub unsafe fn fd_create1(type_: filetype, fd_: &mut fd) -> errno {
 /// The second file descriptor of the pair.
 #[inline]
 pub unsafe fn fd_create2(type_: filetype, fd1_: &mut fd, fd2_: &mut fd) -> errno {
-  (cloudabi_syscalls.fd_create2)(type_, fd1_, fd2_)
+    (cloudabi_syscalls.fd_create2)(type_, fd1_, fd2_)
 }
 
 /// Synchronizes the data of a file to disk.
@@ -1978,7 +2045,7 @@ pub unsafe fn fd_create2(type_: filetype, fd1_: &mut fd, fd2_: &mut fd) -> errno
 /// needs to be synchronized to disk.
 #[inline]
 pub unsafe fn fd_datasync(fd_: fd) -> errno {
-  (cloudabi_syscalls.fd_datasync)(fd_)
+    (cloudabi_syscalls.fd_datasync)(fd_)
 }
 
 /// Duplicates a file descriptor.
@@ -1993,7 +2060,7 @@ pub unsafe fn fd_datasync(fd_: fd) -> errno {
 /// The new file descriptor.
 #[inline]
 pub unsafe fn fd_dup(from_: fd, fd_: &mut fd) -> errno {
-  (cloudabi_syscalls.fd_dup)(from_, fd_)
+    (cloudabi_syscalls.fd_dup)(from_, fd_)
 }
 
 /// Reads from a file descriptor, without using and updating the
@@ -2017,7 +2084,7 @@ pub unsafe fn fd_dup(from_: fd, fd_: &mut fd) -> errno {
 /// The number of bytes read.
 #[inline]
 pub unsafe fn fd_pread(fd_: fd, iovs_: &[iovec], offset_: filesize, nread_: &mut usize) -> errno {
-  (cloudabi_syscalls.fd_pread)(fd_, iovs_.as_ptr(), iovs_.len(), offset_, nread_)
+    (cloudabi_syscalls.fd_pread)(fd_, iovs_.as_ptr(), iovs_.len(), offset_, nread_)
 }
 
 /// Writes to a file descriptor, without using and updating the
@@ -2040,8 +2107,13 @@ pub unsafe fn fd_pread(fd_: fd, iovs_: &[iovec], offset_: filesize, nread_: &mut
 /// **nwritten**:
 /// The number of bytes written.
 #[inline]
-pub unsafe fn fd_pwrite(fd_: fd, iovs_: &[ciovec], offset_: filesize, nwritten_: &mut usize) -> errno {
-  (cloudabi_syscalls.fd_pwrite)(fd_, iovs_.as_ptr(), iovs_.len(), offset_, nwritten_)
+pub unsafe fn fd_pwrite(
+    fd_: fd,
+    iovs_: &[ciovec],
+    offset_: filesize,
+    nwritten_: &mut usize,
+) -> errno {
+    (cloudabi_syscalls.fd_pwrite)(fd_, iovs_.as_ptr(), iovs_.len(), offset_, nwritten_)
 }
 
 /// Reads from a file descriptor.
@@ -2060,7 +2132,7 @@ pub unsafe fn fd_pwrite(fd_: fd, iovs_: &[ciovec], offset_: filesize, nwritten_:
 /// The number of bytes read.
 #[inline]
 pub unsafe fn fd_read(fd_: fd, iovs_: &[iovec], nread_: &mut usize) -> errno {
-  (cloudabi_syscalls.fd_read)(fd_, iovs_.as_ptr(), iovs_.len(), nread_)
+    (cloudabi_syscalls.fd_read)(fd_, iovs_.as_ptr(), iovs_.len(), nread_)
 }
 
 /// Atomically replaces a file descriptor by a copy of another
@@ -2086,7 +2158,7 @@ pub unsafe fn fd_read(fd_: fd, iovs_: &[iovec], nread_: &mut usize) -> errno {
 /// overwritten.
 #[inline]
 pub unsafe fn fd_replace(from_: fd, to_: fd) -> errno {
-  (cloudabi_syscalls.fd_replace)(from_, to_)
+    (cloudabi_syscalls.fd_replace)(from_, to_)
 }
 
 /// Moves the offset of the file descriptor.
@@ -2108,8 +2180,13 @@ pub unsafe fn fd_replace(from_: fd, to_: fd) -> errno {
 /// The new offset of the file descriptor,
 /// relative to the start of the file.
 #[inline]
-pub unsafe fn fd_seek(fd_: fd, offset_: filedelta, whence_: whence, newoffset_: &mut filesize) -> errno {
-  (cloudabi_syscalls.fd_seek)(fd_, offset_, whence_, newoffset_)
+pub unsafe fn fd_seek(
+    fd_: fd,
+    offset_: filedelta,
+    whence_: whence,
+    newoffset_: &mut filesize,
+) -> errno {
+    (cloudabi_syscalls.fd_seek)(fd_, offset_, whence_, newoffset_)
 }
 
 /// Gets attributes of a file descriptor.
@@ -2125,7 +2202,7 @@ pub unsafe fn fd_seek(fd_: fd, offset_: filedelta, whence_: whence, newoffset_: 
 /// attributes are stored.
 #[inline]
 pub unsafe fn fd_stat_get(fd_: fd, buf_: *mut fdstat) -> errno {
-  (cloudabi_syscalls.fd_stat_get)(fd_, buf_)
+    (cloudabi_syscalls.fd_stat_get)(fd_, buf_)
 }
 
 /// Adjusts attributes of a file descriptor.
@@ -2145,7 +2222,7 @@ pub unsafe fn fd_stat_get(fd_: fd, buf_: *mut fdstat) -> errno {
 /// be adjusted.
 #[inline]
 pub unsafe fn fd_stat_put(fd_: fd, buf_: *const fdstat, flags_: fdsflags) -> errno {
-  (cloudabi_syscalls.fd_stat_put)(fd_, buf_, flags_)
+    (cloudabi_syscalls.fd_stat_put)(fd_, buf_, flags_)
 }
 
 /// Synchronizes the data and metadata of a file to disk.
@@ -2157,7 +2234,7 @@ pub unsafe fn fd_stat_put(fd_: fd, buf_: *const fdstat, flags_: fdsflags) -> err
 /// and metadata needs to be synchronized to disk.
 #[inline]
 pub unsafe fn fd_sync(fd_: fd) -> errno {
-  (cloudabi_syscalls.fd_sync)(fd_)
+    (cloudabi_syscalls.fd_sync)(fd_)
 }
 
 /// Writes to a file descriptor.
@@ -2176,7 +2253,7 @@ pub unsafe fn fd_sync(fd_: fd) -> errno {
 /// The number of bytes written.
 #[inline]
 pub unsafe fn fd_write(fd_: fd, iovs_: &[ciovec], nwritten_: &mut usize) -> errno {
-  (cloudabi_syscalls.fd_write)(fd_, iovs_.as_ptr(), iovs_.len(), nwritten_)
+    (cloudabi_syscalls.fd_write)(fd_, iovs_.as_ptr(), iovs_.len(), nwritten_)
 }
 
 /// Provides file advisory information on a file descriptor.
@@ -2199,7 +2276,7 @@ pub unsafe fn fd_write(fd_: fd, iovs_: &[ciovec], nwritten_: &mut usize) -> errn
 /// The advice.
 #[inline]
 pub unsafe fn file_advise(fd_: fd, offset_: filesize, len_: filesize, advice_: advice) -> errno {
-  (cloudabi_syscalls.file_advise)(fd_, offset_, len_, advice_)
+    (cloudabi_syscalls.file_advise)(fd_, offset_, len_, advice_)
 }
 
 /// Forces the allocation of space in a file.
@@ -2218,7 +2295,7 @@ pub unsafe fn file_advise(fd_: fd, offset_: filesize, len_: filesize, advice_: a
 /// The length of the area that is allocated.
 #[inline]
 pub unsafe fn file_allocate(fd_: fd, offset_: filesize, len_: filesize) -> errno {
-  (cloudabi_syscalls.file_allocate)(fd_, offset_, len_)
+    (cloudabi_syscalls.file_allocate)(fd_, offset_, len_)
 }
 
 /// Creates a file of a specified type.
@@ -2239,7 +2316,7 @@ pub unsafe fn file_allocate(fd_: fd, offset_: filesize, len_: filesize) -> errno
 ///     Creates a directory.
 #[inline]
 pub unsafe fn file_create(fd_: fd, path_: &[u8], type_: filetype) -> errno {
-  (cloudabi_syscalls.file_create)(fd_, path_.as_ptr(), path_.len(), type_)
+    (cloudabi_syscalls.file_create)(fd_, path_.as_ptr(), path_.len(), type_)
 }
 
 /// Creates a hard link.
@@ -2263,7 +2340,14 @@ pub unsafe fn file_create(fd_: fd, path_: &[u8], type_: filetype) -> errno {
 /// should be created.
 #[inline]
 pub unsafe fn file_link(fd1_: lookup, path1_: &[u8], fd2_: fd, path2_: &[u8]) -> errno {
-  (cloudabi_syscalls.file_link)(fd1_, path1_.as_ptr(), path1_.len(), fd2_, path2_.as_ptr(), path2_.len())
+    (cloudabi_syscalls.file_link)(
+        fd1_,
+        path1_.as_ptr(),
+        path1_.len(),
+        fd2_,
+        path2_.as_ptr(),
+        path2_.len(),
+    )
 }
 
 /// Opens a file.
@@ -2298,8 +2382,14 @@ pub unsafe fn file_link(fd1_: lookup, path1_: &[u8], fd2_: fd, path2_: &[u8]) ->
 /// The file descriptor of the file that has been
 /// opened.
 #[inline]
-pub unsafe fn file_open(dirfd_: lookup, path_: &[u8], oflags_: oflags, fds_: *const fdstat, fd_: &mut fd) -> errno {
-  (cloudabi_syscalls.file_open)(dirfd_, path_.as_ptr(), path_.len(), oflags_, fds_, fd_)
+pub unsafe fn file_open(
+    dirfd_: lookup,
+    path_: &[u8],
+    oflags_: oflags,
+    fds_: *const fdstat,
+    fd_: &mut fd,
+) -> errno {
+    (cloudabi_syscalls.file_open)(dirfd_, path_.as_ptr(), path_.len(), oflags_, fds_, fd_)
 }
 
 /// Reads directory entries from a directory.
@@ -2333,8 +2423,19 @@ pub unsafe fn file_open(dirfd_: lookup, path_: &[u8], oflags_: oflags, fds_: *co
 /// If less than the size of the read buffer, the
 /// end of the directory has been reached.
 #[inline]
-pub unsafe fn file_readdir(fd_: fd, buf_: &mut [u8], cookie_: dircookie, bufused_: &mut usize) -> errno {
-  (cloudabi_syscalls.file_readdir)(fd_, buf_.as_mut_ptr() as *mut (), buf_.len(), cookie_, bufused_)
+pub unsafe fn file_readdir(
+    fd_: fd,
+    buf_: &mut [u8],
+    cookie_: dircookie,
+    bufused_: &mut usize,
+) -> errno {
+    (cloudabi_syscalls.file_readdir)(
+        fd_,
+        buf_.as_mut_ptr() as *mut (),
+        buf_.len(),
+        cookie_,
+        bufused_,
+    )
 }
 
 /// Reads the contents of a symbolic link.
@@ -2357,7 +2458,14 @@ pub unsafe fn file_readdir(fd_: fd, buf_: &mut [u8], cookie_: dircookie, bufused
 /// The number of bytes placed in the buffer.
 #[inline]
 pub unsafe fn file_readlink(fd_: fd, path_: &[u8], buf_: &mut [u8], bufused_: &mut usize) -> errno {
-  (cloudabi_syscalls.file_readlink)(fd_, path_.as_ptr(), path_.len(), buf_.as_mut_ptr(), buf_.len(), bufused_)
+    (cloudabi_syscalls.file_readlink)(
+        fd_,
+        path_.as_ptr(),
+        path_.len(),
+        buf_.as_mut_ptr(),
+        buf_.len(),
+        bufused_,
+    )
 }
 
 /// Renames a file.
@@ -2381,7 +2489,14 @@ pub unsafe fn file_readlink(fd_: fd, path_: &[u8], buf_: &mut [u8], bufused_: &m
 /// be renamed.
 #[inline]
 pub unsafe fn file_rename(fd1_: fd, path1_: &[u8], fd2_: fd, path2_: &[u8]) -> errno {
-  (cloudabi_syscalls.file_rename)(fd1_, path1_.as_ptr(), path1_.len(), fd2_, path2_.as_ptr(), path2_.len())
+    (cloudabi_syscalls.file_rename)(
+        fd1_,
+        path1_.as_ptr(),
+        path1_.len(),
+        fd2_,
+        path2_.as_ptr(),
+        path2_.len(),
+    )
 }
 
 /// Gets attributes of a file by file descriptor.
@@ -2397,7 +2512,7 @@ pub unsafe fn file_rename(fd1_: fd, path1_: &[u8], fd2_: fd, path2_: &[u8]) -> e
 /// stored.
 #[inline]
 pub unsafe fn file_stat_fget(fd_: fd, buf_: *mut filestat) -> errno {
-  (cloudabi_syscalls.file_stat_fget)(fd_, buf_)
+    (cloudabi_syscalls.file_stat_fget)(fd_, buf_)
 }
 
 /// Adjusts attributes of a file by file descriptor.
@@ -2417,7 +2532,7 @@ pub unsafe fn file_stat_fget(fd_: fd, buf_: *mut filestat) -> errno {
 /// be adjusted.
 #[inline]
 pub unsafe fn file_stat_fput(fd_: fd, buf_: *const filestat, flags_: fsflags) -> errno {
-  (cloudabi_syscalls.file_stat_fput)(fd_, buf_, flags_)
+    (cloudabi_syscalls.file_stat_fput)(fd_, buf_, flags_)
 }
 
 /// Gets attributes of a file by path.
@@ -2438,7 +2553,7 @@ pub unsafe fn file_stat_fput(fd_: fd, buf_: *const filestat, flags_: fsflags) ->
 /// stored.
 #[inline]
 pub unsafe fn file_stat_get(fd_: lookup, path_: &[u8], buf_: *mut filestat) -> errno {
-  (cloudabi_syscalls.file_stat_get)(fd_, path_.as_ptr(), path_.len(), buf_)
+    (cloudabi_syscalls.file_stat_get)(fd_, path_.as_ptr(), path_.len(), buf_)
 }
 
 /// Adjusts attributes of a file by path.
@@ -2462,8 +2577,13 @@ pub unsafe fn file_stat_get(fd_: lookup, path_: &[u8], buf_: *mut filestat) -> e
 /// A bitmask indicating which attributes have to
 /// be adjusted.
 #[inline]
-pub unsafe fn file_stat_put(fd_: lookup, path_: &[u8], buf_: *const filestat, flags_: fsflags) -> errno {
-  (cloudabi_syscalls.file_stat_put)(fd_, path_.as_ptr(), path_.len(), buf_, flags_)
+pub unsafe fn file_stat_put(
+    fd_: lookup,
+    path_: &[u8],
+    buf_: *const filestat,
+    flags_: fsflags,
+) -> errno {
+    (cloudabi_syscalls.file_stat_put)(fd_, path_.as_ptr(), path_.len(), buf_, flags_)
 }
 
 /// Creates a symbolic link.
@@ -2482,7 +2602,13 @@ pub unsafe fn file_stat_put(fd_: lookup, path_: &[u8], buf_: *const filestat, fl
 /// link should be created.
 #[inline]
 pub unsafe fn file_symlink(path1_: &[u8], fd_: fd, path2_: &[u8]) -> errno {
-  (cloudabi_syscalls.file_symlink)(path1_.as_ptr(), path1_.len(), fd_, path2_.as_ptr(), path2_.len())
+    (cloudabi_syscalls.file_symlink)(
+        path1_.as_ptr(),
+        path1_.len(),
+        fd_,
+        path2_.as_ptr(),
+        path2_.len(),
+    )
 }
 
 /// Unlinks a file, or removes a directory.
@@ -2504,7 +2630,7 @@ pub unsafe fn file_symlink(path1_: &[u8], fd_: fd, path2_: &[u8]) -> errno {
 ///     Otherwise, unlink a file.
 #[inline]
 pub unsafe fn file_unlink(fd_: fd, path_: &[u8], flags_: ulflags) -> errno {
-  (cloudabi_syscalls.file_unlink)(fd_, path_.as_ptr(), path_.len(), flags_)
+    (cloudabi_syscalls.file_unlink)(fd_, path_.as_ptr(), path_.len(), flags_)
 }
 
 /// Unlocks a write-locked userspace lock.
@@ -2531,7 +2657,7 @@ pub unsafe fn file_unlink(fd_: fd, path_: &[u8], flags_: ulflags) -> errno {
 /// shared memory.
 #[inline]
 pub unsafe fn lock_unlock(lock_: *mut lock, scope_: scope) -> errno {
-  (cloudabi_syscalls.lock_unlock)(lock_, scope_)
+    (cloudabi_syscalls.lock_unlock)(lock_, scope_)
 }
 
 /// Provides memory advisory information on a region of memory.
@@ -2546,7 +2672,7 @@ pub unsafe fn lock_unlock(lock_: *mut lock, scope_: scope) -> errno {
 /// The advice.
 #[inline]
 pub unsafe fn mem_advise(mapping_: &mut [u8], advice_: advice) -> errno {
-  (cloudabi_syscalls.mem_advise)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), advice_)
+    (cloudabi_syscalls.mem_advise)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), advice_)
 }
 
 /// Creates a memory mapping, making the contents of a file
@@ -2586,8 +2712,16 @@ pub unsafe fn mem_advise(mapping_: &mut [u8], advice_: advice) -> errno {
 /// **mem**:
 /// The starting address of the memory mapping.
 #[inline]
-pub unsafe fn mem_map(addr_: *mut (), len_: usize, prot_: mprot, flags_: mflags, fd_: fd, off_: filesize, mem_: &mut *mut ()) -> errno {
-  (cloudabi_syscalls.mem_map)(addr_, len_, prot_, flags_, fd_, off_, mem_)
+pub unsafe fn mem_map(
+    addr_: *mut (),
+    len_: usize,
+    prot_: mprot,
+    flags_: mflags,
+    fd_: fd,
+    off_: filesize,
+    mem_: &mut *mut (),
+) -> errno {
+    (cloudabi_syscalls.mem_map)(addr_, len_, prot_, flags_, fd_, off_, mem_)
 }
 
 /// Change the protection of a memory mapping.
@@ -2601,7 +2735,7 @@ pub unsafe fn mem_map(addr_: *mut (), len_: usize, prot_: mprot, flags_: mflags,
 /// New protection options.
 #[inline]
 pub unsafe fn mem_protect(mapping_: &mut [u8], prot_: mprot) -> errno {
-  (cloudabi_syscalls.mem_protect)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), prot_)
+    (cloudabi_syscalls.mem_protect)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), prot_)
 }
 
 /// Synchronize a region of memory with its physical storage.
@@ -2615,7 +2749,7 @@ pub unsafe fn mem_protect(mapping_: &mut [u8], prot_: mprot) -> errno {
 /// The method of synchronization.
 #[inline]
 pub unsafe fn mem_sync(mapping_: &mut [u8], flags_: msflags) -> errno {
-  (cloudabi_syscalls.mem_sync)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), flags_)
+    (cloudabi_syscalls.mem_sync)(mapping_.as_mut_ptr() as *mut (), mapping_.len(), flags_)
 }
 
 /// Unmaps a region of memory.
@@ -2626,7 +2760,7 @@ pub unsafe fn mem_sync(mapping_: &mut [u8], flags_: msflags) -> errno {
 /// The pages that needs to be unmapped.
 #[inline]
 pub unsafe fn mem_unmap(mapping_: &mut [u8]) -> errno {
-  (cloudabi_syscalls.mem_unmap)(mapping_.as_mut_ptr() as *mut (), mapping_.len())
+    (cloudabi_syscalls.mem_unmap)(mapping_.as_mut_ptr() as *mut (), mapping_.len())
 }
 
 /// Concurrently polls for the occurrence of a set of events.
@@ -2645,8 +2779,13 @@ pub unsafe fn mem_unmap(mapping_: &mut [u8]) -> errno {
 /// **nevents**:
 /// The number of events stored.
 #[inline]
-pub unsafe fn poll(in_: *const subscription, out_: *mut event, nsubscriptions_: usize, nevents_: &mut usize) -> errno {
-  (cloudabi_syscalls.poll)(in_, out_, nsubscriptions_, nevents_)
+pub unsafe fn poll(
+    in_: *const subscription,
+    out_: *mut event,
+    nsubscriptions_: usize,
+    nevents_: &mut usize,
+) -> errno {
+    (cloudabi_syscalls.poll)(in_, out_, nsubscriptions_, nevents_)
 }
 
 /// Replaces the process by a new executable.
@@ -2684,7 +2823,13 @@ pub unsafe fn poll(in_: *const subscription, out_: *mut event, nsubscriptions_: 
 /// execution.
 #[inline]
 pub unsafe fn proc_exec(fd_: fd, data_: &[u8], fds_: &[fd]) -> errno {
-  (cloudabi_syscalls.proc_exec)(fd_, data_.as_ptr() as *const (), data_.len(), fds_.as_ptr(), fds_.len())
+    (cloudabi_syscalls.proc_exec)(
+        fd_,
+        data_.as_ptr() as *const (),
+        data_.len(),
+        fds_.as_ptr(),
+        fds_.len(),
+    )
 }
 
 /// Terminates the process normally.
@@ -2697,7 +2842,7 @@ pub unsafe fn proc_exec(fd_: fd, data_: &[u8], fds_: &[fd]) -> errno {
 /// through [`event.union.proc_terminate.exitcode`](struct.event_proc_terminate.html#structfield.exitcode).
 #[inline]
 pub unsafe fn proc_exit(rval_: exitcode) -> ! {
-  (cloudabi_syscalls.proc_exit)(rval_)
+    (cloudabi_syscalls.proc_exit)(rval_)
 }
 
 /// Forks the process of the calling thread.
@@ -2722,7 +2867,7 @@ pub unsafe fn proc_exit(rval_: exitcode) -> ! {
 /// initial thread of the child process.
 #[inline]
 pub unsafe fn proc_fork(fd_: &mut fd, tid_: &mut tid) -> errno {
-  (cloudabi_syscalls.proc_fork)(fd_, tid_)
+    (cloudabi_syscalls.proc_fork)(fd_, tid_)
 }
 
 /// Sends a signal to the process of the calling thread.
@@ -2737,7 +2882,7 @@ pub unsafe fn proc_fork(fd_: &mut fd, tid_: &mut tid) -> errno {
 /// [`event.union.proc_terminate.signal`](struct.event_proc_terminate.html#structfield.signal).
 #[inline]
 pub unsafe fn proc_raise(sig_: signal) -> errno {
-  (cloudabi_syscalls.proc_raise)(sig_)
+    (cloudabi_syscalls.proc_raise)(sig_)
 }
 
 /// Obtains random data from the kernel random number generator.
@@ -2753,7 +2898,7 @@ pub unsafe fn proc_raise(sig_: signal) -> errno {
 /// data.
 #[inline]
 pub unsafe fn random_get(buf_: &mut [u8]) -> errno {
-  (cloudabi_syscalls.random_get)(buf_.as_mut_ptr() as *mut (), buf_.len())
+    (cloudabi_syscalls.random_get)(buf_.as_mut_ptr() as *mut (), buf_.len())
 }
 
 /// Receives a message on a socket.
@@ -2771,7 +2916,7 @@ pub unsafe fn random_get(buf_: &mut [u8]) -> errno {
 /// Output parameters.
 #[inline]
 pub unsafe fn sock_recv(sock_: fd, in_: *const recv_in, out_: *mut recv_out) -> errno {
-  (cloudabi_syscalls.sock_recv)(sock_, in_, out_)
+    (cloudabi_syscalls.sock_recv)(sock_, in_, out_)
 }
 
 /// Sends a message on a socket.
@@ -2788,7 +2933,7 @@ pub unsafe fn sock_recv(sock_: fd, in_: *const recv_in, out_: *mut recv_out) -> 
 /// Output parameters.
 #[inline]
 pub unsafe fn sock_send(sock_: fd, in_: *const send_in, out_: *mut send_out) -> errno {
-  (cloudabi_syscalls.sock_send)(sock_, in_, out_)
+    (cloudabi_syscalls.sock_send)(sock_, in_, out_)
 }
 
 /// Shuts down socket send and receive channels.
@@ -2803,7 +2948,7 @@ pub unsafe fn sock_send(sock_: fd, in_: *const send_in, out_: *mut send_out) -> 
 /// down.
 #[inline]
 pub unsafe fn sock_shutdown(sock_: fd, how_: sdflags) -> errno {
-  (cloudabi_syscalls.sock_shutdown)(sock_, how_)
+    (cloudabi_syscalls.sock_shutdown)(sock_, how_)
 }
 
 /// Creates a new thread within the current process.
@@ -2817,7 +2962,7 @@ pub unsafe fn sock_shutdown(sock_: fd, how_: sdflags) -> errno {
 /// The thread ID of the new thread.
 #[inline]
 pub unsafe fn thread_create(attr_: *mut threadattr, tid_: &mut tid) -> errno {
-  (cloudabi_syscalls.thread_create)(attr_, tid_)
+    (cloudabi_syscalls.thread_create)(attr_, tid_)
 }
 
 /// Terminates the calling thread.
@@ -2837,11 +2982,11 @@ pub unsafe fn thread_create(attr_: *mut threadattr, tid_: &mut tid) -> errno {
 /// shared memory.
 #[inline]
 pub unsafe fn thread_exit(lock_: *mut lock, scope_: scope) -> ! {
-  (cloudabi_syscalls.thread_exit)(lock_, scope_)
+    (cloudabi_syscalls.thread_exit)(lock_, scope_)
 }
 
 /// Temporarily yields execution of the calling thread.
 #[inline]
 pub unsafe fn thread_yield() -> errno {
-  (cloudabi_syscalls.thread_yield)()
+    (cloudabi_syscalls.thread_yield)()
 }

@@ -8,29 +8,28 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-extern crate cloudabi;
-
+use sys::cloudabi::abi;
 use time::Duration;
 
-const NSEC_PER_SEC: cloudabi::timestamp = 1_000_000_000;
+const NSEC_PER_SEC: abi::timestamp = 1_000_000_000;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct Instant {
-    t: cloudabi::timestamp,
+    t: abi::timestamp,
 }
 
-pub fn dur2intervals(dur: &Duration) -> cloudabi::timestamp {
+pub fn dur2intervals(dur: &Duration) -> abi::timestamp {
     dur.as_secs()
         .checked_mul(NSEC_PER_SEC)
-        .and_then(|nanos| nanos.checked_add(dur.subsec_nanos() as cloudabi::timestamp))
+        .and_then(|nanos| nanos.checked_add(dur.subsec_nanos() as abi::timestamp))
         .expect("overflow converting duration to nanoseconds")
 }
 
 impl Instant {
     pub fn now() -> Instant {
-        let mut t: cloudabi::timestamp = 0;
-        let ret = unsafe { cloudabi::clock_time_get(cloudabi::clockid::MONOTONIC, 0, &mut t) };
-        assert_eq!(ret, cloudabi::errno::SUCCESS);
+        let mut t: abi::timestamp = 0;
+        let ret = unsafe { abi::clock_time_get(abi::clockid::MONOTONIC, 0, &mut t) };
+        assert_eq!(ret, abi::errno::SUCCESS);
         Instant { t: t }
     }
 
@@ -60,14 +59,14 @@ impl Instant {
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct SystemTime {
-    t: cloudabi::timestamp,
+    t: abi::timestamp,
 }
 
 impl SystemTime {
     pub fn now() -> SystemTime {
-        let mut t: cloudabi::timestamp = 0;
-        let ret = unsafe { cloudabi::clock_time_get(cloudabi::clockid::REALTIME, 0, &mut t) };
-        assert_eq!(ret, cloudabi::errno::SUCCESS);
+        let mut t: abi::timestamp = 0;
+        let ret = unsafe { abi::clock_time_get(abi::clockid::REALTIME, 0, &mut t) };
+        assert_eq!(ret, abi::errno::SUCCESS);
         SystemTime { t: t }
     }
 
@@ -104,8 +103,8 @@ impl SystemTime {
     }
 }
 
-impl From<cloudabi::timestamp> for SystemTime {
-    fn from(t: cloudabi::timestamp) -> SystemTime {
+impl From<abi::timestamp> for SystemTime {
+    fn from(t: abi::timestamp) -> SystemTime {
         SystemTime { t: t }
     }
 }
