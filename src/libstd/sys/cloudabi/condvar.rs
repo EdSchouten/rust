@@ -60,7 +60,7 @@ impl Condvar {
             let ret = cloudabi::condvar_signal(
                 condvar as *mut cloudabi::condvar,
                 cloudabi::scope::PRIVATE,
-                u32::max_value(),
+                cloudabi::nthreads::max_value(),
             );
             assert_eq!(
                 ret,
