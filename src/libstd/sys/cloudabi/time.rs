@@ -108,10 +108,4 @@ impl SystemTime {
     }
 }
 
-impl From<abi::timestamp> for SystemTime {
-    fn from(t: abi::timestamp) -> SystemTime {
-        SystemTime { t: t }
-    }
-}
-
 pub const UNIX_EPOCH: SystemTime = SystemTime { t: 0 };
