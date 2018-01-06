@@ -17,7 +17,7 @@ pub type Key = libc::pthread_key_t;
 
 #[inline]
 pub unsafe fn create(dtor: Option<unsafe extern "C" fn(*mut u8)>) -> Key {
-    let mut key = 0;
+    let mut key = mem::uninitialized();
     assert_eq!(libc::pthread_key_create(&mut key, mem::transmute(dtor)), 0);
     key
 }

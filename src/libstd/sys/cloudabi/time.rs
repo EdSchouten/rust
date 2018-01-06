@@ -8,6 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use mem;
 use sys::cloudabi::abi;
 use time::Duration;
 
@@ -27,10 +28,12 @@ pub fn dur2intervals(dur: &Duration) -> abi::timestamp {
 
 impl Instant {
     pub fn now() -> Instant {
-        let mut t: abi::timestamp = 0;
-        let ret = unsafe { abi::clock_time_get(abi::clockid::MONOTONIC, 0, &mut t) };
-        assert_eq!(ret, abi::errno::SUCCESS);
-        Instant { t: t }
+        unsafe {
+            let mut t = mem::uninitialized();
+            let ret = abi::clock_time_get(abi::clockid::MONOTONIC, 0, &mut t);
+            assert_eq!(ret, abi::errno::SUCCESS);
+            Instant { t: t }
+        }
     }
 
     pub fn sub_instant(&self, other: &Instant) -> Duration {
@@ -64,10 +67,12 @@ pub struct SystemTime {
 
 impl SystemTime {
     pub fn now() -> SystemTime {
-        let mut t: abi::timestamp = 0;
-        let ret = unsafe { abi::clock_time_get(abi::clockid::REALTIME, 0, &mut t) };
-        assert_eq!(ret, abi::errno::SUCCESS);
-        SystemTime { t: t }
+        unsafe {
+            let mut t = mem::uninitialized();
+            let ret = abi::clock_time_get(abi::clockid::REALTIME, 0, &mut t);
+            assert_eq!(ret, abi::errno::SUCCESS);
+            SystemTime { t: t }
+        }
     }
 
     pub fn sub_time(&self, other: &SystemTime) -> Result<Duration, Duration> {
