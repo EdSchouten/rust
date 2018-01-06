@@ -16,7 +16,6 @@ use libc;
 use mem;
 use ptr;
 use sys::cloudabi::abi;
-use sys::os;
 use sys::time::dur2intervals;
 use sys_common::thread::*;
 use time::Duration;
@@ -40,21 +39,7 @@ impl Thread {
         assert_eq!(libc::pthread_attr_init(&mut attr), 0);
 
         let stack_size = cmp::max(stack, min_stack_size(&attr));
-
-        match libc::pthread_attr_setstacksize(&mut attr, stack_size) {
-            0 => {}
-            n => {
-                assert_eq!(n, libc::EINVAL);
-                // EINVAL means |stack_size| is either too small or not a
-                // multiple of the system page size.  Because it's definitely
-                // >= PTHREAD_STACK_MIN, it must be an alignment issue.
-                // Round up to the nearest page and try again.
-                let page_size = os::page_size();
-                let stack_size =
-                    (stack_size + page_size - 1) & (-(page_size as isize - 1) as usize - 1);
-                assert_eq!(libc::pthread_attr_setstacksize(&mut attr, stack_size), 0);
-            }
-        };
+        assert_eq!(libc::pthread_attr_setstacksize(&mut attr, stack_size), 0);
 
         let ret = libc::pthread_create(&mut native, &attr, thread_start, &*p as *const _ as *mut _);
         assert_eq!(libc::pthread_attr_destroy(&mut attr), 0);

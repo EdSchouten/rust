@@ -29,7 +29,3 @@ pub fn error_string(errno: i32) -> String {
         .unwrap()
         .to_owned()
 }
-
-pub fn page_size() -> usize {
-    unsafe { libc::sysconf(libc::_SC_PAGESIZE) as usize }
-}
