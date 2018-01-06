@@ -32,15 +32,6 @@ pub struct Thread {
 unsafe impl Send for Thread {}
 unsafe impl Sync for Thread {}
 
-// The pthread_attr_setstacksize symbol doesn't exist in the emscripten libc,
-// so we have to not link to it to satisfy emcc's ERROR_ON_UNDEFINED_SYMBOLS.
-unsafe fn pthread_attr_setstacksize(
-    attr: *mut libc::pthread_attr_t,
-    stack_size: libc::size_t,
-) -> libc::c_int {
-    libc::pthread_attr_setstacksize(attr, stack_size)
-}
-
 impl Thread {
     pub unsafe fn new<'a>(stack: usize, p: Box<FnBox() + 'a>) -> io::Result<Thread> {
         let p = box p;
@@ -50,7 +41,7 @@ impl Thread {
 
         let stack_size = cmp::max(stack, min_stack_size(&attr));
 
-        match pthread_attr_setstacksize(&mut attr, stack_size) {
+        match libc::pthread_attr_setstacksize(&mut attr, stack_size) {
             0 => {}
             n => {
                 assert_eq!(n, libc::EINVAL);
