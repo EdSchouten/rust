@@ -326,7 +326,6 @@ impl TestOpts {
             run_ignored: false,
             run_tests: false,
             bench_benchmarks: false,
-            logfile: None,
             nocapture: false,
             color: AutoColor,
             quiet: false,
@@ -916,7 +915,6 @@ fn should_sort_failures_before_printing_them() {
     };
 
     let mut st = ConsoleTestState {
-        log_out: None,
         out: Raw(Vec::new()),
         use_color: false,
         quiet: false,

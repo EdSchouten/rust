@@ -487,6 +487,9 @@ impl<'test> TestCx<'test> {
     }
 
     fn run_debuginfo_gdb_test_no_opt(&self) {
+        if self.config.target.contains("cloudabi") {
+            return;
+        }
         let prefixes = if self.config.gdb_native_rust {
             // GDB with Rust
             static PREFIXES: &'static [&'static str] = &["gdb", "gdbr"];

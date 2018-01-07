@@ -9,6 +9,7 @@
 // except according to those terms.
 
 // min-lldb-version: 310
+// ignore-cloudabi
 
 // == Test [gdb|lldb]-[command|check] are parsed correctly ===
 // should-fail

@@ -109,6 +109,7 @@ macro_rules! rtabort {
 }
 
 /// One-time runtime cleanup.
+#[allow(dead_code)]
 pub fn cleanup() {
     static CLEANUP: Once = Once::new();
     CLEANUP.call_once(|| unsafe {

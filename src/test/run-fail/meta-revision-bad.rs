@@ -15,6 +15,7 @@
 // should-fail
 //[foo] error-pattern:bar
 //[bar] error-pattern:foo
+// ignore-cloudabi
 
 #[cfg(foo)]
 fn die() {
