@@ -1204,14 +1204,14 @@ impl PrimitiveTypeTable {
         table.intern("char", TyChar);
         table.intern("f32", TyFloat(FloatTy::F32));
         table.intern("f64", TyFloat(FloatTy::F64));
-        table.intern("isize", TyInt(IntTy::Is));
+        table.intern("isize", TyInt(IntTy::Isize));
         table.intern("i8", TyInt(IntTy::I8));
         table.intern("i16", TyInt(IntTy::I16));
         table.intern("i32", TyInt(IntTy::I32));
         table.intern("i64", TyInt(IntTy::I64));
         table.intern("i128", TyInt(IntTy::I128));
         table.intern("str", TyStr);
-        table.intern("usize", TyUint(UintTy::Us));
+        table.intern("usize", TyUint(UintTy::Usize));
         table.intern("u8", TyUint(UintTy::U8));
         table.intern("u16", TyUint(UintTy::U16));
         table.intern("u32", TyUint(UintTy::U32));
@@ -2982,6 +2982,8 @@ impl<'a> Resolver<'a> {
                     let msg = "There are too many initial `super`s.".to_string();
                     return PathResult::Failed(ident.span, msg, false);
                 }
+            } else if i == 0 && ns == TypeNS && name == keywords::Extern.name() {
+                continue;
             }
             allow_super = false;
 
@@ -2996,16 +2998,19 @@ impl<'a> Resolver<'a> {
                     // `$crate::a::b`
                     module = Some(self.resolve_crate_root(ident.node.ctxt));
                     continue
-                } else if i == 1 && self.session.features.borrow().extern_absolute_paths &&
-                                    path[0].node.name == keywords::CrateRoot.name() &&
-                                    !token::Ident(ident.node).is_path_segment_keyword() {
-                    // `::extern_crate::a::b`
-                    let crate_id = self.crate_loader.resolve_crate_from_path(name, ident.span);
-                    let crate_root =
-                        self.get_module(DefId { krate: crate_id, index: CRATE_DEF_INDEX });
-                    self.populate_module_if_necessary(crate_root);
-                    module = Some(crate_root);
-                    continue
+                } else if i == 1 && !token::Ident(ident.node).is_path_segment_keyword() {
+                    let prev_name = path[0].node.name;
+                    if prev_name == keywords::Extern.name() ||
+                       prev_name == keywords::CrateRoot.name() &&
+                       self.session.features.borrow().extern_absolute_paths {
+                        // `::extern_crate::a::b`
+                        let crate_id = self.crate_loader.resolve_crate_from_path(name, ident.span);
+                        let crate_root =
+                            self.get_module(DefId { krate: crate_id, index: CRATE_DEF_INDEX });
+                        self.populate_module_if_necessary(crate_root);
+                        module = Some(crate_root);
+                        continue
+                    }
                 }
             }
 
@@ -3015,6 +3020,7 @@ impl<'a> Resolver<'a> {
                name == keywords::SelfValue.name() && i != 0 ||
                name == keywords::SelfType.name() && i != 0 ||
                name == keywords::Super.name() && i != 0 ||
+               name == keywords::Extern.name() && i != 0 ||
                name == keywords::Crate.name() && i != 1 &&
                     path[0].node.name != keywords::CrateRoot.name() {
                 let name_str = if name == keywords::CrateRoot.name() {
@@ -4089,4 +4095,5 @@ pub enum MakeGlobMap {
     No,
 }
 
+#[cfg(not(stage0))] // remove after the next snapshot
 __build_diagnostic_array! { librustc_resolve, DIAGNOSTICS }

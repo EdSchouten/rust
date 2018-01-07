@@ -514,7 +514,7 @@ pub enum ModuleBuffer {}
 #[link(name = "rustllvm", kind = "static")]
 extern "C" {
     // Create and destroy contexts.
-    pub fn LLVMContextCreate() -> ContextRef;
+    pub fn LLVMRustContextCreate(shouldDiscardNames: bool) -> ContextRef;
     pub fn LLVMContextDispose(C: ContextRef);
     pub fn LLVMGetMDKindIDInContext(C: ContextRef, Name: *const c_char, SLen: c_uint) -> c_uint;
 
@@ -537,9 +537,6 @@ extern "C" {
 
     /// See llvm::LLVMTypeKind::getTypeID.
     pub fn LLVMRustGetTypeKind(Ty: TypeRef) -> TypeKind;
-
-    /// See llvm::Value::getContext
-    pub fn LLVMRustGetValueContext(V: ValueRef) -> ContextRef;
 
     // Operations on integer types
     pub fn LLVMInt1TypeInContext(C: ContextRef) -> TypeRef;
@@ -812,13 +809,12 @@ extern "C" {
                                Bundle: OperandBundleDefRef,
                                Name: *const c_char)
                                -> ValueRef;
-    pub fn LLVMRustBuildLandingPad(B: BuilderRef,
-                                   Ty: TypeRef,
-                                   PersFn: ValueRef,
-                                   NumClauses: c_uint,
-                                   Name: *const c_char,
-                                   F: ValueRef)
-                                   -> ValueRef;
+    pub fn LLVMBuildLandingPad(B: BuilderRef,
+                               Ty: TypeRef,
+                               PersFn: ValueRef,
+                               NumClauses: c_uint,
+                               Name: *const c_char)
+                               -> ValueRef;
     pub fn LLVMBuildResume(B: BuilderRef, Exn: ValueRef) -> ValueRef;
     pub fn LLVMBuildUnreachable(B: BuilderRef) -> ValueRef;
 

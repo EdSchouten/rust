@@ -925,7 +925,7 @@ fn trans_gnu_try<'a, 'tcx>(bcx: &Builder<'a, 'tcx>,
         // rust_try ignores the selector.
         let lpad_ty = Type::struct_(ccx, &[Type::i8p(ccx), Type::i32(ccx)],
                                     false);
-        let vals = catch.landing_pad(lpad_ty, bcx.ccx.eh_personality(), 1, catch.llfn());
+        let vals = catch.landing_pad(lpad_ty, bcx.ccx.eh_personality(), 1);
         catch.add_clause(vals, C_null(Type::i8p(ccx)));
         let ptr = catch.extract_value(vals, 0);
         let ptr_align = bcx.tcx().data_layout.pointer_align;
@@ -1246,7 +1246,7 @@ fn generic_simd_intrinsic<'a, 'tcx>(
 fn int_type_width_signed(ty: Ty, ccx: &CrateContext) -> Option<(u64, bool)> {
     match ty.sty {
         ty::TyInt(t) => Some((match t {
-            ast::IntTy::Is => {
+            ast::IntTy::Isize => {
                 match &ccx.tcx().sess.target.target.target_pointer_width[..] {
                     "16" => 16,
                     "32" => 32,
@@ -1261,7 +1261,7 @@ fn int_type_width_signed(ty: Ty, ccx: &CrateContext) -> Option<(u64, bool)> {
             ast::IntTy::I128 => 128,
         }, true)),
         ty::TyUint(t) => Some((match t {
-            ast::UintTy::Us => {
+            ast::UintTy::Usize => {
                 match &ccx.tcx().sess.target.target.target_pointer_width[..] {
                     "16" => 16,
                     "32" => 32,
