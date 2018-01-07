@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+#[allow(dead_code)]
 pub fn init(_: isize, _: *const *const u8) {}
 
+#[allow(dead_code)]
 pub fn cleanup() {}

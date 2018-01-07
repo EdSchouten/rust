@@ -30,6 +30,7 @@ pub mod time;
 
 mod abi;
 
+#[allow(dead_code)]
 pub fn init() {}
 
 pub fn decode_error_kind(errno: i32) -> io::ErrorKind {
