@@ -24,7 +24,7 @@ RUN sh /scripts/sccache.sh
 
 ENV TARGETS=x86_64-unknown-cloudabi
 
-ENV CARGO_TARGET_X86_64_UNKNOWN_CLOUDABI_RUNNER=true
+ENV CARGO_TARGET_X86_64_UNKNOWN_CLOUDABI_RUNNER true
 ENV RUST_CONFIGURE_ARGS --target=$TARGETS --disable-jemalloc
 
 ENV SCRIPT python2.7 /checkout/x.py test --target $TARGETS
