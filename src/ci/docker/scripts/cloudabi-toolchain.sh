@@ -11,11 +11,27 @@
 
 set -eux
 
-target="$1"
-
-# Based on the steps described at https://nuxi.nl/cloudabi/debian/
+# Install prerequisites.
+apt-get update
+apt-get install -y --no-install-recommends \
+  apt-transport-https \
+  ca-certificates \
+  clang-5.0 \
+  cmake \
+  curl \
+  file \
+  g++ \
+  gdb \
+  git \
+  lld-5.0 \
+  make \
+  python \
+  sudo \
+  xz-utils
 
 # Set up a Clang-based cross compiler toolchain.
+# Based on the steps described at https://nuxi.nl/cloudabi/debian/
+target="$1"
 for tool in ar nm objdump ranlib size; do
   ln -s ../lib/llvm-5.0/bin/llvm-${tool} /usr/bin/${target}-${tool}
 done
