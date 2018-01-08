@@ -8,8 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![allow(dead_code)] // not used on all platforms
-
 use mem;
 use libc;
 
