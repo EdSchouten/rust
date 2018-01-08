@@ -15,16 +15,20 @@ use mem;
 pub mod args;
 #[cfg(feature = "backtrace")]
 pub mod backtrace;
+#[path = "../unix/cmath.rs"]
 pub mod cmath;
 pub mod condvar;
+#[path = "../unix/memchr.rs"]
 pub mod memchr;
 pub mod mutex;
 pub mod os;
+#[path = "../unix/os_str.rs"]
 pub mod os_str;
 pub mod rwlock;
 pub mod stack_overflow;
 pub mod stdio;
 pub mod thread;
+#[path = "../unix/thread_local.rs"]
 pub mod thread_local;
 pub mod time;
 
