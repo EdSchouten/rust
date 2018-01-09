@@ -26,7 +26,7 @@ pub struct Thread {
     id: libc::pthread_t,
 }
 
-// Some platforms may have pthread_t as a pointer in which case we still want
+// CloudABI has pthread_t as a pointer in which case we still want
 // a thread to be Send/Sync
 unsafe impl Send for Thread {}
 unsafe impl Sync for Thread {}
