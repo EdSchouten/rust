@@ -493,6 +493,7 @@ enum OutputLocation<T> {
 }
 
 struct ConsoleTestState<T> {
+    log_out: Option<Box<Write>>,
     out: OutputLocation<T>,
     use_color: bool,
     quiet: bool,
@@ -512,6 +513,7 @@ struct ConsoleTestState<T> {
 
 impl<T: Write> ConsoleTestState<T> {
     pub fn new(opts: &TestOpts, _: Option<T>) -> io::Result<ConsoleTestState<io::Stdout>> {
+        let log_out = None;
         let out = match term::stdout() {
             None => Raw(io::stdout()),
             Some(t) => Pretty(t),
@@ -519,6 +521,7 @@ impl<T: Write> ConsoleTestState<T> {
 
         Ok(ConsoleTestState {
             out,
+            log_out,
             use_color: use_color(opts),
             quiet: opts.quiet,
             total: 0,
@@ -644,8 +647,12 @@ impl<T: Write> ConsoleTestState<T> {
                                   TEST_WARN_TIMEOUT_S))
     }
 
-    pub fn write_log<S: AsRef<str>>(&mut self, _: S) -> io::Result<()> {
-        Ok(())
+    pub fn write_log<S: AsRef<str>>(&mut self, msg: S) -> io::Result<()> {
+        let msg = msg.as_ref();
+        match self.log_out {
+            None => Ok(()),
+            Some(ref mut o) => o.write_all(msg.as_bytes()),
+        }
     }
 
     pub fn write_log_result(&mut self, test: &TestDesc, result: &TestResult) -> io::Result<()> {
@@ -915,6 +922,7 @@ fn should_sort_failures_before_printing_them() {
     };
 
     let mut st = ConsoleTestState {
+        log_out: None,
         out: Raw(Vec::new()),
         use_color: false,
         quiet: false,
