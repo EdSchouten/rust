@@ -1535,6 +1535,10 @@ impl<'test> TestCx<'test> {
             rustc.args(&["-Z", "incremental-queries"]);
         }
 
+        if self.config.mode == CodegenUnits {
+            rustc.args(&["-Z", "human_readable_cgu_names"]);
+        }
+
         match self.config.mode {
             CompileFail | ParseFail | Incremental => {
                 // If we are extracting and matching errors in the new
@@ -2886,7 +2890,7 @@ fn read2_abbreviated(mut child: Child) -> io::Result<Output> {
                     *skipped += data.len();
                     if data.len() <= TAIL_LEN {
                         tail[..data.len()].copy_from_slice(data);
-                        tail.rotate(data.len());
+                        tail.rotate_left(data.len());
                     } else {
                         tail.copy_from_slice(&data[(data.len() - TAIL_LEN)..]);
                     }

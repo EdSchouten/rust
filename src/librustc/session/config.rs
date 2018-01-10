@@ -1084,8 +1084,6 @@ options! {DebuggingOptions, DebuggingSetter, basic_debugging_options,
         "omit landing pads for unwinding"),
     fewer_names: bool = (false, parse_bool, [TRACKED],
         "reduce memory use by retaining fewer names within compilation artifacts (LLVM-IR)"),
-    debug_llvm: bool = (false, parse_bool, [UNTRACKED],
-        "enable debug output from LLVM"),
     meta_stats: bool = (false, parse_bool, [UNTRACKED],
         "gather metadata statistics"),
     print_link_args: bool = (false, parse_bool, [UNTRACKED],
@@ -1236,6 +1234,8 @@ options! {DebuggingOptions, DebuggingSetter, basic_debugging_options,
         "rewrite operators on i128 and u128 into lang item calls (typically provided \
          by compiler-builtins) so translation doesn't need to support them,
          overriding the default for the current target"),
+    human_readable_cgu_names: bool = (false, parse_bool, [TRACKED],
+        "generate human-readable, predictable names for codegen units"),
 }
 
 pub fn default_lib_output() -> CrateType {
@@ -2746,8 +2746,6 @@ mod tests {
         opts.debugging_opts.trans_stats = true;
         assert_eq!(reference.dep_tracking_hash(), opts.dep_tracking_hash());
         opts.debugging_opts.borrowck_stats = true;
-        assert_eq!(reference.dep_tracking_hash(), opts.dep_tracking_hash());
-        opts.debugging_opts.debug_llvm = true;
         assert_eq!(reference.dep_tracking_hash(), opts.dep_tracking_hash());
         opts.debugging_opts.meta_stats = true;
         assert_eq!(reference.dep_tracking_hash(), opts.dep_tracking_hash());
