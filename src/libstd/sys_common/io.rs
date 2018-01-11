@@ -9,7 +9,8 @@
 // except according to those terms.
 pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
-#[cfg(all(test, not(target_os = "cloudabi"), not(target_os = "emscripten")))]
+#[cfg(test)]
+#[allow(dead_code)] // not used on emscripten
 pub mod test {
     use path::{Path, PathBuf};
     use env;

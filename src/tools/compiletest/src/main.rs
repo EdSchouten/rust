@@ -486,6 +486,7 @@ pub fn test_opts(config: &Config) -> test::TestOpts {
         filter_exact: config.filter_exact,
         run_ignored: config.run_ignored,
         quiet: config.quiet,
+        logfile: config.logfile.clone(),
         run_tests: true,
         bench_benchmarks: true,
         nocapture: match env::var("RUST_TEST_NOCAPTURE") {

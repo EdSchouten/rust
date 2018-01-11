@@ -59,9 +59,7 @@ cfg_if! {
 
 #[cfg(dox)]
 cfg_if! {
-    if #[cfg(target_os = "cloudabi")] {
-        // Don't document anything more, as it likely won't build.
-    } else if #[cfg(any(unix, target_os = "redox"))] {
+    if #[cfg(any(unix, target_os = "redox"))] {
         // On unix we'll document what's already available
         pub use self::ext as unix_ext;
     } else if #[cfg(target_arch = "wasm32")] {
@@ -79,9 +77,7 @@ cfg_if! {
 
 #[cfg(dox)]
 cfg_if! {
-    if #[cfg(target_os = "cloudabi")] {
-        // Don't document anything more, as it likely won't build.
-    } else if #[cfg(windows)] {
+    if #[cfg(windows)] {
         // On windows we'll just be documenting what's already available
         pub use self::ext as windows_ext;
     } else if #[cfg(target_arch = "wasm32")] {

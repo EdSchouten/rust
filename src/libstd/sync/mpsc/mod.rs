@@ -1799,23 +1799,16 @@ impl From<RecvError> for RecvTimeoutError {
 
 #[cfg(all(test, not(target_os = "emscripten")))]
 mod tests {
+    use env;
     use super::*;
     use thread;
     use time::{Duration, Instant};
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn stress_factor() -> usize {
-        use env;
-
         match env::var("RUST_TEST_STRESS") {
             Ok(val) => val.parse().unwrap(),
             Err(..) => 1,
         }
-    }
-
-    #[cfg(target_os = "cloudabi")]
-    pub fn stress_factor() -> usize {
-        1
     }
 
     #[test]
@@ -2487,23 +2480,16 @@ mod tests {
 
 #[cfg(all(test, not(target_os = "emscripten")))]
 mod sync_tests {
+    use env;
     use thread;
     use super::*;
     use time::Duration;
 
-    #[cfg(not(target_os = "cloudabi"))]
     pub fn stress_factor() -> usize {
-        use env;
-
         match env::var("RUST_TEST_STRESS") {
             Ok(val) => val.parse().unwrap(),
             Err(..) => 1,
         }
-    }
-
-    #[cfg(target_os = "cloudabi")]
-    pub fn stress_factor() -> usize {
-        1
     }
 
     #[test]

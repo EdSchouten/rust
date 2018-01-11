@@ -358,7 +358,6 @@ use prelude::v1::*;
                  debug_assert_ne, unreachable, unimplemented, write, writeln, try)]
 extern crate core as __core;
 
-#[allow(unused_imports)]
 #[macro_use]
 #[macro_reexport(vec, format)]
 extern crate alloc;
@@ -474,21 +473,16 @@ pub mod f64;
 pub mod thread;
 pub mod ascii;
 pub mod collections;
-#[cfg(not(target_os = "cloudabi"))]
 pub mod env;
 pub mod error;
 pub mod ffi;
-#[cfg(not(target_os = "cloudabi"))]
 pub mod fs;
 pub mod io;
-#[cfg(not(target_os = "cloudabi"))]
 pub mod net;
 pub mod num;
 pub mod os;
 pub mod panic;
-#[cfg(not(target_os = "cloudabi"))]
 pub mod path;
-#[cfg(not(target_os = "cloudabi"))]
 pub mod process;
 pub mod sync;
 pub mod time;

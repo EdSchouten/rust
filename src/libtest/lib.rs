@@ -60,10 +60,13 @@ use std::any::Any;
 use std::boxed::FnBox;
 use std::cmp;
 use std::collections::BTreeMap;
+use std::env;
 use std::fmt;
+use std::fs::File;
 use std::io::prelude::*;
 use std::io;
 use std::iter::repeat;
+use std::path::PathBuf;
 use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -256,7 +259,7 @@ pub fn test_main(args: &[String], tests: Vec<TestDescAndFn>, options: Options) {
     } else {
         match run_tests_console(&opts, tests) {
             Ok(true) => {}
-            Ok(false) => panic!("test returned false"),
+            Ok(false) => std::process::exit(101),
             Err(e) => panic!("io error when running tests: {:?}", e),
         }
     }
@@ -270,7 +273,7 @@ pub fn test_main(args: &[String], tests: Vec<TestDescAndFn>, options: Options) {
 // semantics into parallel test runners, which in turn requires a Vec<>
 // rather than a &[].
 pub fn test_main_static(tests: &[TestDescAndFn]) {
-    let args = [];
+    let args = env::args().collect::<Vec<_>>();
     let owned_tests = tests.iter()
                            .map(|t| {
                                match t.testfn {
@@ -308,6 +311,7 @@ pub struct TestOpts {
     pub run_ignored: bool,
     pub run_tests: bool,
     pub bench_benchmarks: bool,
+    pub logfile: Option<PathBuf>,
     pub nocapture: bool,
     pub color: ColorConfig,
     pub quiet: bool,
@@ -326,6 +330,7 @@ impl TestOpts {
             run_ignored: false,
             run_tests: false,
             bench_benchmarks: false,
+            logfile: None,
             nocapture: false,
             color: AutoColor,
             quiet: false,
@@ -420,10 +425,19 @@ pub fn parse_opts(args: &[String]) -> Option<OptRes> {
     let exact = matches.opt_present("exact");
     let list = matches.opt_present("list");
 
+    let logfile = matches.opt_str("logfile");
+    let logfile = logfile.map(|s| PathBuf::from(&s));
+
     let bench_benchmarks = matches.opt_present("bench");
     let run_tests = !bench_benchmarks || matches.opt_present("test");
 
-    let nocapture = matches.opt_present("nocapture");
+    let mut nocapture = matches.opt_present("nocapture");
+    if !nocapture {
+        nocapture = match env::var("RUST_TEST_NOCAPTURE") {
+            Ok(val) => &val != "0",
+            Err(_) => false
+        };
+    }
 
     let test_threads = match matches.opt_str("test-threads") {
         Some(n_str) =>
@@ -458,6 +472,7 @@ pub fn parse_opts(args: &[String]) -> Option<OptRes> {
         run_ignored,
         run_tests,
         bench_benchmarks,
+        logfile,
         nocapture,
         color,
         quiet,
@@ -493,7 +508,7 @@ enum OutputLocation<T> {
 }
 
 struct ConsoleTestState<T> {
-    log_out: Option<Box<Write>>,
+    log_out: Option<File>,
     out: OutputLocation<T>,
     use_color: bool,
     quiet: bool,
@@ -513,7 +528,10 @@ struct ConsoleTestState<T> {
 
 impl<T: Write> ConsoleTestState<T> {
     pub fn new(opts: &TestOpts, _: Option<T>) -> io::Result<ConsoleTestState<io::Stdout>> {
-        let log_out = None;
+        let log_out = match opts.logfile {
+            Some(ref path) => Some(File::create(path)?),
+            None => None,
+        };
         let out = match term::stdout() {
             None => Raw(io::stdout()),
             Some(t) => Pretty(t),
@@ -1119,11 +1137,8 @@ pub fn run_tests<F>(opts: &TestOpts, tests: Vec<TestDescAndFn>, mut callback: F)
     Ok(())
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 #[allow(deprecated)]
 fn get_concurrency() -> usize {
-    use std::env;
-
     return match env::var("RUST_TEST_THREADS") {
         Ok(s) => {
             let opt_n: Option<usize> = s.parse().ok();
@@ -1176,13 +1191,14 @@ fn get_concurrency() -> usize {
         1
     }
 
-    #[cfg(any(target_os = "linux",
-              target_os = "macos",
-              target_os = "ios",
-              target_os = "android",
-              target_os = "solaris",
+    #[cfg(any(target_os = "android",
+              target_os = "cloudabi",
               target_os = "emscripten",
-              target_os = "fuchsia"))]
+              target_os = "fuchsia",
+              target_os = "ios",
+              target_os = "linux",
+              target_os = "macos",
+              target_os = "solaris"))]
     fn num_cpus() -> usize {
         unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as usize }
     }
@@ -1244,12 +1260,6 @@ fn get_concurrency() -> usize {
         // FIXME: implement
         1
     }
-}
-
-#[cfg(target_os = "cloudabi")]
-#[allow(deprecated)]
-fn get_concurrency() -> usize {
-    unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) as usize }
 }
 
 pub fn filter_tests(opts: &TestOpts, tests: Vec<TestDescAndFn>) -> Vec<TestDescAndFn> {

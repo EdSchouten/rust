@@ -11,16 +11,20 @@
 //! Terminfo database interface.
 
 use std::collections::HashMap;
+use std::env;
 use std::error;
 use std::fmt;
+use std::fs::File;
 use std::io::prelude::*;
 use std::io;
-#[cfg(not(target_os = "cloudabi"))]
+use std::io::BufReader;
 use std::path::Path;
 
 use Attr;
 use color;
 use Terminal;
+use self::searcher::get_dbpath_for_term;
+use self::parser::compiled::{parse, msys_terminfo};
 use self::parm::{expand, Variables, Param};
 
 
@@ -74,13 +78,9 @@ impl fmt::Display for Error {
     }
 }
 
-#[cfg(not(target_os = "cloudabi"))]
 impl TermInfo {
     /// Create a TermInfo based on current environment.
     pub fn from_env() -> Result<TermInfo, Error> {
-        use std::env;
-        use self::parser::compiled::msys_terminfo;
-
         let term = match env::var("TERM") {
             Ok(name) => TermInfo::from_name(&name),
             Err(..) => return Err(Error::TermUnset),
@@ -96,8 +96,6 @@ impl TermInfo {
 
     /// Create a TermInfo for the named terminal.
     pub fn from_name(name: &str) -> Result<TermInfo, Error> {
-        use self::searcher::get_dbpath_for_term;
-
         get_dbpath_for_term(name)
             .ok_or_else(|| {
                 Error::IoError(io::Error::new(io::ErrorKind::NotFound, "terminfo file not found"))
@@ -111,25 +109,12 @@ impl TermInfo {
     }
     // Keep the metadata small
     fn _from_path(path: &Path) -> Result<TermInfo, Error> {
-        use std::fs::File;
-        use std::io::BufReader;
-        use self::parser::compiled::parse;
-
         let file = File::open(path).map_err(|e| Error::IoError(e))?;
         let mut reader = BufReader::new(file);
         parse(&mut reader, false).map_err(|e| Error::MalformedTerminfo(e))
     }
 }
 
-#[cfg(target_os = "cloudabi")]
-impl TermInfo {
-    /// Create a TermInfo based on current environment.
-    pub fn from_env() -> Result<TermInfo, Error> {
-        Err(Error::TermUnset)
-    }
-}
-
-#[cfg(not(target_os = "cloudabi"))]
 pub mod searcher;
 
 /// TermInfo format parsing.

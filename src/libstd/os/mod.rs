@@ -14,7 +14,7 @@
 #![allow(missing_docs, bad_style, missing_debug_implementations)]
 
 cfg_if! {
-    if #[cfg(all(dox, not(target_os = "cloudabi")))] {
+    if #[cfg(dox)] {
 
         // When documenting libstd we want to show unix/windows/linux modules as
         // these are the "main modules" that are used across platforms. This
