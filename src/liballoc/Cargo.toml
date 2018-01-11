@@ -12,7 +12,7 @@ core = { path = "../libcore" }
 std_unicode = { path = "../libstd_unicode" }
 
 [dev-dependencies]
-rand = { git = "https://github.com/EdSchouten/rand", branch = "cloudabi" }
+rand = { git = "https://github.com/rust-lang-nursery/rand" }
 
 [[test]]
 name = "collectionstests"

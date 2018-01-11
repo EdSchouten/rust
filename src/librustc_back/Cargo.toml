@@ -12,7 +12,7 @@ crate-type = ["dylib"]
 syntax = { path = "../libsyntax" }
 serialize = { path = "../libserialize" }
 log = "0.4"
-rand = { git = "https://github.com/EdSchouten/rand", branch = "cloudabi" }
+rand = { git = "https://github.com/rust-lang-nursery/rand" }
 
 [features]
 jemalloc = []
