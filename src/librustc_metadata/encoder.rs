@@ -18,6 +18,7 @@ use rustc::middle::cstore::{LinkMeta, LinkagePreference, NativeLibrary,
 use rustc::hir::def::CtorKind;
 use rustc::hir::def_id::{CrateNum, CRATE_DEF_INDEX, DefIndex, DefId, LOCAL_CRATE};
 use rustc::hir::map::definitions::DefPathTable;
+use rustc::ich::Fingerprint;
 use rustc::middle::dependency_format::Linkage;
 use rustc::middle::lang_items;
 use rustc::mir;
@@ -189,6 +190,12 @@ impl<'a, 'tcx> SpecializedEncoder<ty::GenericPredicates<'tcx>> for EncodeContext
                           predicates: &ty::GenericPredicates<'tcx>)
                           -> Result<(), Self::Error> {
         ty_codec::encode_predicates(self, predicates, |ecx| &mut ecx.predicate_shorthands)
+    }
+}
+
+impl<'a, 'tcx> SpecializedEncoder<Fingerprint> for EncodeContext<'a, 'tcx> {
+    fn specialized_encode(&mut self, f: &Fingerprint) -> Result<(), Self::Error> {
+        f.encode_opaque(&mut self.opaque)
     }
 }
 
@@ -858,14 +865,15 @@ impl<'a, 'b: 'a, 'tcx: 'b> IsolatedEncoder<'a, 'b, 'tcx> {
 
     fn encode_fn_arg_names_for_body(&mut self, body_id: hir::BodyId)
                                     -> LazySeq<ast::Name> {
-        let _ignore = self.tcx.dep_graph.in_ignore();
-        let body = self.tcx.hir.body(body_id);
-        self.lazy_seq(body.arguments.iter().map(|arg| {
-            match arg.pat.node {
-                PatKind::Binding(_, _, name, _) => name.node,
-                _ => Symbol::intern("")
-            }
-        }))
+        self.tcx.dep_graph.with_ignore(|| {
+            let body = self.tcx.hir.body(body_id);
+            self.lazy_seq(body.arguments.iter().map(|arg| {
+                match arg.pat.node {
+                    PatKind::Binding(_, _, name, _) => name.node,
+                    _ => Symbol::intern("")
+                }
+            }))
+        })
     }
 
     fn encode_fn_arg_names(&mut self, names: &[Spanned<ast::Name>])
