@@ -8,14 +8,24 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-const QUERY = 'from_u';
+// no-prefer-dynamic
 
-const EXPECTED = {
-    'others': [
-        { 'path': 'std::char', 'name': 'from_u32' },
-        { 'path': 'std::str', 'name': 'from_utf8' },
-        { 'path': 'std::string::String', 'name': 'from_utf8' },
-        { 'path': 'std::i32', 'name': 'from_unsigned' },
-        { 'path': 'std::i128', 'name': 'from_unsigned' },
-    ],
-};
+#![crate_type = "proc-macro"]
+
+extern crate proc_macro;
+
+use proc_macro::TokenStream;
+
+// Add a function to shift DefIndex of registrar function
+#[cfg(cfail2)]
+fn foo() {}
+
+#[proc_macro_derive(IncrementalMacro)]
+pub fn derive(input: TokenStream) -> TokenStream {
+    #[cfg(cfail2)]
+    {
+        foo();
+    }
+
+    "".parse().unwrap()
+}

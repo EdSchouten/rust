@@ -8,14 +8,20 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-const QUERY = 'from_u';
+// aux-build:incremental_proc_macro_aux.rs
+// ignore-stage1
+// revisions: cfail1 cfail2
+// must-compile-successfully
 
-const EXPECTED = {
-    'others': [
-        { 'path': 'std::char', 'name': 'from_u32' },
-        { 'path': 'std::str', 'name': 'from_utf8' },
-        { 'path': 'std::string::String', 'name': 'from_utf8' },
-        { 'path': 'std::i32', 'name': 'from_unsigned' },
-        { 'path': 'std::i128', 'name': 'from_unsigned' },
-    ],
-};
+// This test makes sure that we still find the proc-macro registrar function
+// when we compile proc-macros incrementally (see #47292).
+
+#![crate_type = "rlib"]
+
+#[macro_use]
+extern crate incremental_proc_macro_aux;
+
+#[derive(IncrementalMacro)]
+pub struct Foo {
+    x: u32
+}
